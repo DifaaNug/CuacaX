@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User preferences - only the user can read/write their own data
+    match /userPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Favorite locations - only the user can manage their favorites
+    match /favoriteLocations/{locationId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Weather history - only the user can access their history
+    match /weatherHistory/{historyId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Weather alerts - only the user can manage their alerts
+    match /weatherAlerts/{alertId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Custom health tips - only the user can manage their tips
+    match /customHealthTips/{tipId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Notification tokens - only the user can manage their tokens
+    match /notificationTokens/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Alert preferences - only the user can manage their preferences
+    match /alertPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // App usage analytics - only authenticated users can write
+    match /appUsage/{usageId} {
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

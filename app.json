@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CuacaX",
+    "name": "CuacaX - Weather Health Monitor",
     "slug": "CuacaX",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,15 +8,29 @@
     "scheme": "cuacax",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "projectId": "fbf8f2ac-1234-4567-8901-123456789abc",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Aplikasi ini memerlukan akses lokasi untuk memberikan informasi cuaca yang akurat di lokasi Anda.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Aplikasi ini memerlukan akses lokasi untuk memberikan peringatan cuaca dan tips kesehatan yang relevan."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0066CC"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
+      "package": "com.cuacax.weatherhealth"
     },
     "web": {
       "bundler": "metro",
@@ -31,12 +45,31 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#0066CC"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Aplikasi ini memerlukan akses lokasi untuk memberikan informasi cuaca dan peringatan kesehatan yang akurat."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#0066CC",
+          "sounds": ["./assets/sounds/notification.wav"]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
     }
   }
 }

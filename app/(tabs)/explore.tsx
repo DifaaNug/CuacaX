@@ -1,110 +1,85 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { FirebaseExample } from '../../components/FirebaseExample';
+import { ThemedText } from '../../components/ThemedText';
+import { ThemedView } from '../../components/ThemedView';
+import WeatherMap from '../../components/WeatherMap';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+const { width } = Dimensions.get('window');
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const [, setCurrentLocation] = useState({
+    latitude: -6.2088,
+    longitude: 106.8456,
+  });
+
+  const handleLocationSelect = (latitude: number, longitude: number) => {
+    setCurrentLocation({ latitude, longitude });
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
+    <ScrollView style={styles.container}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+        <ThemedText type="title">Explore & Firebase Demo</ThemedText>
       </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+      
+      {/* Firebase Demo Section */}
+      <View style={styles.demoContainer}>
+        <FirebaseExample />
+      </View>
+
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Peta Cuaca</ThemedText>
+      </ThemedView>
+      
+      <View style={styles.mapContainer}>
+        <WeatherMap
+          onLocationSelect={handleLocationSelect}
+          height={width * 0.8}
+        />
+      </View>
+
+      <ThemedView style={styles.infoContainer}>
+        <ThemedText type="subtitle">Informasi Peta</ThemedText>
+        <ThemedText style={styles.description}>
+          Peta ini menampilkan kondisi cuaca real-time di berbagai lokasi. 
+          Anda dapat menjelajahi kondisi cuaca di area sekitar atau mencari lokasi tertentu.
         </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
   },
   titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+    padding: 20,
+    backgroundColor: 'transparent',
+  },
+  demoContainer: {
+    margin: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  mapContainer: {
+    margin: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    height: width * 0.8,
+  },
+  infoContainer: {
+    margin: 16,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+  },
+  description: {
+    marginTop: 8,
+    lineHeight: 20,
+    color: '#6B7280',
   },
 });
