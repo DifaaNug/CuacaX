@@ -105,7 +105,11 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
         )}
       </View>
 
-      <ScrollView style={styles.alertsContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={[styles.alertsContainer, { maxHeight: 300 }]} 
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         {/* Active Alerts */}
         {activeAlerts.map((alert) => (
           <View 
@@ -136,6 +140,8 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
                 <TouchableOpacity
                   style={styles.dismissButton}
                   onPress={() => onDismissAlert(alert.id)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.dismissButtonText}>✕</Text>
                 </TouchableOpacity>
@@ -315,16 +321,22 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   dismissButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   dismissButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#666',
+    fontWeight: 'bold',
   },
   alertMessage: {
     fontSize: 14,
