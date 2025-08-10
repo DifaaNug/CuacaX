@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import FirebaseNotificationService from './firebaseNotificationService';
+import { AirQualityData, TemperatureAnomaly, WeatherData } from '../types/weather';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -14,16 +14,22 @@ Notifications.setNotificationHandler({
 });
 
 export class NotificationService {
-  private static isExpoGo = true; // Assume Expo Go for now
-
-  /**
-   * Request notification permissions
-   */
   static async requestPermissions(): Promise<boolean> {
     try {
-      console.log('Requesting notification permissions...');
-      
-      // Setup Android notification channels
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Notification permission not granted');
+        return false;
+      }
+
+      // Configure notification channels for Android
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('weather-alerts', {
           name: 'Weather Alerts',
@@ -41,159 +47,139 @@ export class NotificationService {
         });
       }
 
-      // Try Firebase first (works on web and development builds)
-      const firebasePermission = await FirebaseNotificationService.requestPermissions();
-      
-      if (firebasePermission) {
-        console.log('Firebase notification permissions granted');
-        return true;
-      }
-
-      // Fallback to Expo notifications
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus === 'granted') {
-        console.log('Expo notification permissions granted');
-        return true;
-      }
-
-      console.log('Notification permissions denied');
-      return false;
+      console.log('Notification permissions granted');
+      return true;
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
       return false;
     }
   }
 
-  /**
-   * Get device token (FCM or Expo push token)
-   */
   static async getDeviceToken(): Promise<string | null> {
     try {
-      // Try Firebase FCM token first
-      const fcmToken = await FirebaseNotificationService.getRegistrationToken();
-      if (fcmToken) {
-        console.log('Using Firebase FCM token');
-        return fcmToken;
-      }
-
-      // Fallback to Expo push token
-      if (this.isExpoGo) {
-        console.log('Development mode: Using mock token for Expo Go');
-        return `expo-mock-token-${Date.now()}`;
-      }
-
-      const { data: token } = await Notifications.getExpoPushTokenAsync();
-      console.log('Using Expo push token:', token);
-      return token;
+      // Get Expo push token
+      const token = await Notifications.getExpoPushTokenAsync();
+      console.log('Using Expo push token');
+      return token.data;
     } catch (error) {
       console.error('Error getting device token:', error);
       return null;
     }
   }
 
-  /**
-   * Save token to database
-   */
   static async saveTokenToDatabase(): Promise<void> {
     try {
-      console.log('Saving notification token to database...');
-      
-      // Use Firebase service for token management
-      await FirebaseNotificationService.saveTokenToDatabase();
-      
-      console.log('Notification token saved successfully');
+      const token = await this.getDeviceToken();
+      if (token) {
+        console.log('Device token saved locally:', token);
+        // Could save to AsyncStorage or Firebase if needed
+      }
     } catch (error) {
-      console.error('Error saving notification token:', error);
-      throw error;
+      console.error('Error saving token to database:', error);
     }
   }
 
-  /**
-   * Schedule daily weather update notification
-   */
   static async scheduleDailyWeatherUpdate(hour: number = 7): Promise<void> {
     try {
-      console.log(`Scheduling daily weather update for ${hour}:00...`);
+      // Cancel existing scheduled notifications
+      await Notifications.cancelAllScheduledNotificationsAsync();
       
-      // Use Firebase service for scheduling
-      await FirebaseNotificationService.scheduleDailyWeatherUpdate(hour);
+      // Schedule daily weather update
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Daily Weather Update',
+          body: 'Check today\'s weather forecast and air quality!',
+          data: { type: 'daily_weather' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+          hour,
+          minute: 0,
+          repeats: true,
+        },
+      });
       
-      console.log('Daily weather update scheduled successfully');
+      console.log(`Daily weather notification scheduled for ${hour}:00`);
     } catch (error) {
       console.error('Error scheduling daily weather update:', error);
     }
   }
 
-  /**
-   * Send immediate notification
-   */
-  static async sendImmediateNotification(title: string, body: string, data?: any): Promise<void> {
+  static async sendWeatherAlert(title: string, body: string, data: any = {}): Promise<void> {
     try {
-      // Use Firebase service first
-      await FirebaseNotificationService.sendWeatherAlert(title, body, data);
-      
-      // Fallback to Expo notifications for immediate display
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
-          data: data || {},
+          data: { type: 'weather_alert', ...data },
         },
         trigger: null, // Send immediately
       });
       
-      console.log('Immediate notification sent:', title);
+      console.log('Weather alert sent:', title);
     } catch (error) {
-      console.error('Error sending immediate notification:', error);
+      console.error('Error sending weather alert:', error);
     }
   }
 
-  /**
-   * Check and send weather alerts
-   */
-  static async checkAndSendWeatherAlerts(weather: any, airQuality: any, anomalies: any[]): Promise<void> {
+  static async checkAndSendWeatherAlerts(
+    weather: WeatherData,
+    airQuality: AirQualityData,
+    anomalies: TemperatureAnomaly[]
+  ): Promise<void> {
     try {
-      // Use Firebase service for weather alerts
-      await FirebaseNotificationService.checkAndSendWeatherAlerts(weather, airQuality, anomalies);
+      // Check for extreme weather conditions
+      if (weather.temperature > 35) {
+        await this.sendWeatherAlert(
+          'High Temperature Alert',
+          `Temperature is ${weather.temperature}°C. Stay hydrated and avoid prolonged sun exposure.`,
+          { temperature: weather.temperature }
+        );
+      }
+
+      if (weather.temperature < 10) {
+        await this.sendWeatherAlert(
+          'Low Temperature Alert',
+          `Temperature is ${weather.temperature}°C. Dress warmly and take care.`,
+          { temperature: weather.temperature }
+        );
+      }
+
+      // Check air quality
+      if (airQuality.aqi >= 4) {
+        await this.sendWeatherAlert(
+          'Poor Air Quality Alert',
+          `Air quality is ${airQuality.quality}. Limit outdoor activities.`,
+          { aqi: airQuality.aqi }
+        );
+      }
+
+      // Check temperature anomalies
+      const todayAnomaly = anomalies[anomalies.length - 1];
+      if (todayAnomaly && Math.abs(todayAnomaly.anomaly) > 7) {
+        await this.sendWeatherAlert(
+          'Temperature Anomaly Alert',
+          `Temperature is ${todayAnomaly.anomaly > 0 ? 'much higher' : 'much lower'} than normal.`,
+          { anomaly: todayAnomaly.anomaly }
+        );
+      }
     } catch (error) {
       console.error('Error checking and sending weather alerts:', error);
     }
   }
 
-  /**
-   * Send test notification
-   */
   static async sendTestNotification(): Promise<void> {
     try {
-      await FirebaseNotificationService.testNotification();
-      console.log('Test notification sent successfully');
+      await this.sendWeatherAlert(
+        'Test Notification',
+        'This is a test notification from CuacaX weather app!',
+        { test: true }
+      );
     } catch (error) {
       console.error('Error sending test notification:', error);
     }
   }
 
-  /**
-   * Get all scheduled notifications
-   */
-  static async getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
-    try {
-      return await Notifications.getAllScheduledNotificationsAsync();
-    } catch (error) {
-      console.error('Error getting scheduled notifications:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Cancel all notifications
-   */
   static async cancelAllNotifications(): Promise<void> {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
@@ -203,17 +189,12 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Cleanup tokens on logout
-   */
-  static async cleanup(): Promise<void> {
+  static async deleteToken(): Promise<void> {
     try {
-      await FirebaseNotificationService.deleteToken();
-      console.log('Notification service cleaned up');
+      // For Expo, we don't need to explicitly delete tokens
+      console.log('Token deletion handled by Expo');
     } catch (error) {
-      console.error('Error cleaning up notification service:', error);
+      console.error('Error deleting token:', error);
     }
   }
 }
-
-export default NotificationService;
