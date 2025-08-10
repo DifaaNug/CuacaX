@@ -73,8 +73,8 @@ export default function HomeScreen() {
       const airQualityData = await WeatherService.getAirQuality(coords.lat, coords.lon);
       setAirQuality(airQualityData);
 
-      // Load temperature anomalies
-      const anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7);
+      // Load temperature anomalies with current temperature for realistic simulation
+      const anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7, weather.temperature);
       setTemperatureAnomalies(anomalies);
 
       // Check for alerts
@@ -90,13 +90,30 @@ export default function HomeScreen() {
       
       const existingAlerts = await AlertService.getActiveAlerts();
       
-      // Deduplicate alerts by ID to prevent duplicate keys
-      const allAlerts = [...newAlerts, ...existingAlerts];
-      const uniqueAlerts = allAlerts.filter((alert, index, self) => 
-        index === self.findIndex(a => a.id === alert.id)
-      );
+      // Debug logging
+      console.log('New alerts count:', newAlerts.length);
+      console.log('Existing alerts count:', existingAlerts.length);
       
-      setAlerts(uniqueAlerts);
+      // Only use existing alerts and only add genuinely new alerts
+      // This prevents accumulation of duplicate alerts on refresh
+      const today = new Date().toDateString();
+      const allAlerts = [...existingAlerts]; // Start with existing alerts
+      
+      // Only add new alerts if they don't already exist for today
+      newAlerts.forEach(newAlert => {
+        const exists = allAlerts.some(existing => 
+          existing.id === newAlert.id || 
+          (existing.type === newAlert.type && 
+           existing.location === newAlert.location &&
+           new Date(existing.timestamp).toDateString() === today)
+        );
+        if (!exists) {
+          allAlerts.push(newAlert);
+        }
+      });
+      
+      console.log('Final alerts count:', allAlerts.length);
+      setAlerts(allAlerts);
 
       // Get health tips
       const hasHeatWave = anomalies.some(a => a.type === 'heat_wave');
@@ -176,12 +193,12 @@ export default function HomeScreen() {
     initializeApp();
   }, [initializeApp]);
 
-  // Reload weather data when selected location changes
+  // Reload weather data when selected location changes - but prevent initial double call
   useEffect(() => {
-    if (selectedLocation) {
+    if (selectedLocation && weatherData) { // Only call if we already have weather data (not initial load)
       loadWeatherData();
     }
-  }, [selectedLocation, loadWeatherData]);
+  }, [selectedLocation, loadWeatherData, weatherData]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
