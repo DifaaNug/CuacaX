@@ -130,7 +130,11 @@ export function WeatherMap({
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor, borderColor, height }]}>
+    <ThemedView style={[
+      styles.container, 
+      { backgroundColor, borderColor },
+      height ? { height } : { flex: 1 }
+    ]}>
       <View style={styles.header}>
         <Text style={styles.headerIcon}>🗺️</Text>
         <ThemedText style={styles.title}>Peta Cuaca</ThemedText>
@@ -138,7 +142,11 @@ export function WeatherMap({
 
       {/* Interactive Fallback Map for Expo Go */}
       <TouchableOpacity 
-        style={[styles.mapPlaceholder, { backgroundColor: primaryColor + '10', height: height - 100 }]}
+        style={[
+          styles.mapPlaceholder, 
+          { backgroundColor: primaryColor + '10' },
+          height ? { height: height - 100 } : { flex: 1 }
+        ]}
         onPress={handleMapAreaPress}
         activeOpacity={0.8}
       >
