@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     addDoc,
     collection,
@@ -28,6 +29,11 @@ export class DatabaseService {
   static async saveUserPreferences(preferences: UserPreferences) {
     try {
       const userId = this.getCurrentUserId();
+      
+      // Save to AsyncStorage as backup
+      await AsyncStorage.setItem('userPreferences', JSON.stringify(preferences));
+      
+      // Save to Firebase
       await setDoc(doc(db, 'userPreferences', userId), {
         ...preferences,
         updatedAt: serverTimestamp(),
@@ -41,11 +47,27 @@ export class DatabaseService {
   static async getUserPreferences(): Promise<UserPreferences | null> {
     try {
       const userId = this.getCurrentUserId();
-      const snapshot = await getDocs(query(collection(db, 'userPreferences'), where('__name__', '==', userId)));
       
-      if (!snapshot.empty) {
-        return snapshot.docs[0].data() as UserPreferences;
+      // Try to get from Firebase first
+      try {
+        const snapshot = await getDocs(query(collection(db, 'userPreferences'), where('__name__', '==', userId)));
+        
+        if (!snapshot.empty) {
+          const prefs = snapshot.docs[0].data() as UserPreferences;
+          // Update AsyncStorage with latest from Firebase
+          await AsyncStorage.setItem('userPreferences', JSON.stringify(prefs));
+          return prefs;
+        }
+      } catch {
+        console.log('Firebase read error, falling back to AsyncStorage');
       }
+      
+      // Fallback to AsyncStorage if Firebase fails
+      const localPrefs = await AsyncStorage.getItem('userPreferences');
+      if (localPrefs) {
+        return JSON.parse(localPrefs) as UserPreferences;
+      }
+      
       return null;
     } catch (error) {
       console.error('Error getting user preferences:', error);
@@ -63,11 +85,18 @@ export class DatabaseService {
   }) {
     try {
       const userId = this.getCurrentUserId();
-      await addDoc(collection(db, 'favoriteLocations'), {
+      
+      // Save to Firebase
+      const docRef = await addDoc(collection(db, 'favoriteLocations'), {
         userId,
         ...locationData,
         createdAt: serverTimestamp(),
       });
+      
+      // Update AsyncStorage backup
+      await this.updateFavoriteLocationsCache();
+      
+      return docRef;
     } catch (error) {
       console.error('Error saving favorite location:', error);
       throw error;
@@ -77,34 +106,84 @@ export class DatabaseService {
   static async getFavoriteLocations() {
     try {
       const userId = this.getCurrentUserId();
-      // Simplified query without orderBy to avoid index requirement
-      const q = query(
-        collection(db, 'favoriteLocations'),
-        where('userId', '==', userId)
-      );
-      const snapshot = await getDocs(q);
       
-      // Sort client-side to avoid index requirement
-      const locations = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      }));
-      
-      // Sort by createdAt client-side (newest first)
-      return locations.sort((a: any, b: any) => {
-        const aTime = a.createdAt?.toDate?.() || new Date(0);
-        const bTime = b.createdAt?.toDate?.() || new Date(0);
-        return bTime.getTime() - aTime.getTime();
-      });
+      // Try to get from Firebase first
+      try {
+        const q = query(
+          collection(db, 'favoriteLocations'),
+          where('userId', '==', userId)
+        );
+        const snapshot = await getDocs(q);
+        
+        // Sort client-side to avoid index requirement
+        const locations = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        
+        // Sort by createdAt client-side (newest first)
+        const sortedLocations = locations.sort((a: any, b: any) => {
+          const aTime = a.createdAt?.toDate?.() || new Date(0);
+          const bTime = b.createdAt?.toDate?.() || new Date(0);
+          return bTime.getTime() - aTime.getTime();
+        });
+        
+        // Update AsyncStorage cache with latest data
+        await AsyncStorage.setItem('favoriteLocations', JSON.stringify(sortedLocations));
+        
+        return sortedLocations;
+      } catch {
+        console.log('Firebase read error for favorites, falling back to AsyncStorage');
+        
+        // Fallback to AsyncStorage if Firebase fails
+        const cachedLocations = await AsyncStorage.getItem('favoriteLocations');
+        if (cachedLocations) {
+          return JSON.parse(cachedLocations);
+        }
+        
+        return [];
+      }
     } catch (error) {
       console.error('Error getting favorite locations:', error);
       return [];
     }
   }
 
+  // Helper method to update AsyncStorage cache for favorites
+  private static async updateFavoriteLocationsCache() {
+    try {
+      const userId = this.getCurrentUserId();
+      
+      // Get directly from Firebase to avoid recursion
+      const q = query(
+        collection(db, 'favoriteLocations'),
+        where('userId', '==', userId)
+      );
+      const snapshot = await getDocs(q);
+      
+      const locations = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      
+      const sortedLocations = locations.sort((a: any, b: any) => {
+        const aTime = a.createdAt?.toDate?.() || new Date(0);
+        const bTime = b.createdAt?.toDate?.() || new Date(0);
+        return bTime.getTime() - aTime.getTime();
+      });
+      
+      await AsyncStorage.setItem('favoriteLocations', JSON.stringify(sortedLocations));
+    } catch (error) {
+      console.log('Error updating favorites cache:', error);
+    }
+  }
+
   static async removeFavoriteLocation(locationId: string) {
     try {
       await deleteDoc(doc(db, 'favoriteLocations', locationId));
+      
+      // Update AsyncStorage cache after deletion
+      await this.updateFavoriteLocationsCache();
     } catch (error) {
       console.error('Error removing favorite location:', error);
       throw error;
