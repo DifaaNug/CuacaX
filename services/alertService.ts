@@ -32,19 +32,46 @@ export class AlertService {
     const alerts: Alert[] = [];
     const preferences = await this.getNotificationPreferences();
     
-    for (const anomaly of anomalies) {
-      if (anomaly.type === 'heat_wave' && preferences.heatWave) {
-        const alert = this.createHeatWaveAlert(anomaly, location);
+    // Only check TODAY's anomaly (most recent) for current conditions
+    const todayAnomaly = anomalies[anomalies.length - 1]; // Last item is today
+    
+    if (!todayAnomaly || todayAnomaly.type === 'normal') {
+      return alerts; // No alert needed for normal conditions
+    }
+
+    // Check if we already have an alert for today to prevent duplicates
+    const today = new Date().toDateString();
+    const existingAlerts = await this.getActiveAlerts();
+    
+    if (todayAnomaly.type === 'heat_wave' && preferences.heatWave) {
+      const existingHeatAlert = existingAlerts.find(
+        alert => alert.type === 'heat_wave' && 
+        alert.location === location &&
+        new Date(alert.timestamp).toDateString() === today
+      );
+      
+      if (!existingHeatAlert) {
+        const alert = this.createHeatWaveAlert(todayAnomaly, location);
         alerts.push(alert);
         await this.sendNotification(alert);
-      } else if (anomaly.type === 'cold_wave' && preferences.coldWave) {
-        const alert = this.createColdWaveAlert(anomaly, location);
+      }
+    } else if (todayAnomaly.type === 'cold_wave' && preferences.coldWave) {
+      const existingColdAlert = existingAlerts.find(
+        alert => alert.type === 'cold_wave' && 
+        alert.location === location &&
+        new Date(alert.timestamp).toDateString() === today
+      );
+      
+      if (!existingColdAlert) {
+        const alert = this.createColdWaveAlert(todayAnomaly, location);
         alerts.push(alert);
         await this.sendNotification(alert);
       }
     }
     
-    await this.saveAlerts(alerts);
+    if (alerts.length > 0) {
+      await this.saveAlerts(alerts);
+    }
     return alerts;
   }
 
@@ -54,9 +81,23 @@ export class AlertService {
     if (!preferences.airQuality || airQuality.aqi <= 2) {
       return null;
     }
+
+    // Check if we already have an air quality alert for today to prevent duplicates
+    const today = new Date().toDateString();
+    const existingAlerts = await this.getActiveAlerts();
+    const existingAirAlert = existingAlerts.find(
+      alert => alert.type === 'poor_air_quality' && 
+      alert.location === location &&
+      new Date(alert.timestamp).toDateString() === today
+    );
+
+    if (existingAirAlert) {
+      return existingAirAlert; // Return existing alert instead of creating new one
+    }
     
+    const alertId = `air_quality_${Date.now()}_${location.replace(/[^a-zA-Z0-9]/g, '_')}`;
     const alert: Alert = {
-      id: `air_quality_${Date.now()}`,
+      id: alertId,
       type: 'poor_air_quality',
       title: `Poor Air Quality Alert - ${location}`,
       message: `Air quality is ${airQuality.quality.toLowerCase()} (AQI: ${airQuality.aqi}). ${airQuality.recommendations[0]}`,
@@ -78,9 +119,23 @@ export class AlertService {
     if (!preferences.uvIndex || uvIndex < 8) {
       return null;
     }
+
+    // Check if we already have a UV alert for today to prevent duplicates
+    const today = new Date().toDateString();
+    const existingAlerts = await this.getActiveAlerts();
+    const existingUVAlert = existingAlerts.find(
+      alert => alert.type === 'high_uv' && 
+      alert.location === location &&
+      new Date(alert.timestamp).toDateString() === today
+    );
+
+    if (existingUVAlert) {
+      return existingUVAlert; // Return existing alert instead of creating new one
+    }
     
+    const alertId = `uv_index_${Date.now()}_${location.replace(/[^a-zA-Z0-9]/g, '_')}`;
     const alert: Alert = {
-      id: `uv_index_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: alertId,
       type: 'high_uv',
       title: `High UV Index Alert - ${location}`,
       message: `UV Index is very high (${uvIndex}). Limit sun exposure and use sunscreen.`,
