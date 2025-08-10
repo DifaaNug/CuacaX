@@ -182,7 +182,7 @@ export class WeatherService {
     }
   }
 
-  static async getHistoricalData(lat: number, lon: number, days: number = 7): Promise<TemperatureAnomaly[]> {
+  static async getHistoricalData(lat: number, lon: number, days: number = 7, currentTemp?: number): Promise<TemperatureAnomaly[]> {
     // For now, we'll simulate historical data since OpenWeather's historical API requires a paid plan
     // You can implement this with your preferred historical weather API
     const anomalies: TemperatureAnomaly[] = [];
@@ -192,20 +192,39 @@ export class WeatherService {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       
-      // Simulate temperature data
-      const normalTemp = 25 + Math.sin((date.getMonth() + 1) * Math.PI / 6) * 10;
-      const actualTemp = normalTemp + (Math.random() - 0.5) * 20;
+      // Calculate normal temperature based on season
+      const normalTemp = 25 + Math.sin((date.getMonth() + 1) * Math.PI / 6) * 8;
+      
+      // For recent days, use temperature closer to current temperature for realistic anomalies
+      let actualTemp: number;
+      if (i === 0 && currentTemp) {
+        // Today's temperature should be the actual current temperature
+        actualTemp = currentTemp;
+      } else {
+        // Historical temps should be more realistic - closer to normal with some variation
+        const dayVariation = (Math.random() - 0.5) * 6; // Reduced variation
+        actualTemp = normalTemp + dayVariation;
+        
+        // If current temp is significantly different from normal, reflect that in recent history
+        if (currentTemp) {
+          const currentAnomaly = currentTemp - normalTemp;
+          const trendFactor = Math.max(0, 1 - i / days); // Recent days follow current trend more
+          actualTemp += currentAnomaly * trendFactor * 0.5;
+        }
+      }
+      
       const anomaly = actualTemp - normalTemp;
       
       let type: TemperatureAnomaly['type'] = 'normal';
       let severity: TemperatureAnomaly['severity'] = 'low';
       
-      if (anomaly > 5) {
+      // More realistic thresholds for Indonesian climate
+      if (anomaly > 7) {
         type = 'heat_wave';
-        severity = anomaly > 10 ? 'extreme' : anomaly > 8 ? 'high' : 'medium';
-      } else if (anomaly < -5) {
+        severity = anomaly > 12 ? 'extreme' : anomaly > 9 ? 'high' : 'medium';
+      } else if (anomaly < -7) {
         type = 'cold_wave';
-        severity = anomaly < -10 ? 'extreme' : anomaly < -8 ? 'high' : 'medium';
+        severity = anomaly < -12 ? 'extreme' : anomaly < -9 ? 'high' : 'medium';
       }
       
       anomalies.push({
