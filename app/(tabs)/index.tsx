@@ -146,11 +146,19 @@ export default function HomeScreen() {
       // Initialize notifications after auth is ready (with delay)
       setTimeout(async () => {
         try {
-          const notificationPermission = await NotificationService.requestPermissions();
-          if (notificationPermission) {
-            await NotificationService.saveTokenToDatabase();
-            // Schedule daily weather updates
-            await NotificationService.scheduleDailyWeatherUpdate(7);
+          // Check user preferences before setting up notifications
+          const userPrefs = await DatabaseService.getUserPreferences();
+          const notificationsEnabled = userPrefs?.alertsEnabled !== false; // Default to true if not set
+          
+          if (notificationsEnabled) {
+            const notificationPermission = await NotificationService.requestPermissions();
+            if (notificationPermission) {
+              await NotificationService.saveTokenToDatabase();
+              // Schedule daily weather updates
+              await NotificationService.scheduleDailyWeatherUpdate(7);
+            }
+          } else {
+            console.log('Notifications disabled by user preferences');
           }
         } catch (error) {
           console.log('Notification setup will retry later:', error);
