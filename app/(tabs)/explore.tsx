@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Dimensions, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { WeatherMap } from '../../components/WeatherMap';
 import { WeatherService } from '../../services/weatherService';
 import { WeatherData } from '../../types/weather';
-
-const { width } = Dimensions.get('window');
 
 export default function ExploreScreen() {
   const [currentLocation, setCurrentLocation] = useState({
@@ -52,7 +50,7 @@ export default function ExploreScreen() {
         <WeatherMap
           currentWeather={currentWeather || undefined}
           onLocationSelect={handleLocationSelect}
-          height={width * 0.75}
+          height={undefined} // Let it use flex: 1 from container
         />
         {loading && (
           <ThemedView style={styles.loadingOverlay}>
@@ -64,8 +62,8 @@ export default function ExploreScreen() {
       <ThemedView style={styles.infoContainer}>
         <ThemedText type="subtitle">Cara Menggunakan</ThemedText>
         <ThemedText style={styles.description}>
-          • Tap pada peta untuk melihat cuaca di lokasi tersebut{'\n'}
-          • Gunakan tombol &quot;Gunakan Lokasi Saat Ini&quot; untuk kembali ke GPS{'\n'}
+          • Tap pada peta untuk membuka di browser atau input koordinat{'\n'}
+          • Gunakan tombol &quot;Gunakan Lokasi Saat Ini&quot; untuk GPS{'\n'}
           • Peta menampilkan kondisi cuaca real-time
         </ThemedText>
       </ThemedView>
@@ -79,29 +77,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   titleContainer: {
-    padding: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
     backgroundColor: 'transparent',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 2,
   },
   mapContainer: {
     flex: 1,
-    margin: 16,
-    marginTop: 0,
+    marginHorizontal: 12,
+    marginVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   infoContainer: {
-    margin: 16,
-    marginTop: 0,
-    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   description: {
     marginTop: 8,
