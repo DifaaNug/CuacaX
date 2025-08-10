@@ -1,52 +1,75 @@
-import React, { useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
-import { FirebaseExample } from '../../components/FirebaseExample';
+import React, { useEffect, useState } from 'react';
+import { Alert, Dimensions, StyleSheet, View } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import WeatherMap from '../../components/WeatherMap';
+import { WeatherMap } from '../../components/WeatherMap';
+import { WeatherService } from '../../services/weatherService';
+import { WeatherData } from '../../types/weather';
 
 const { width } = Dimensions.get('window');
 
 export default function ExploreScreen() {
-  const [, setCurrentLocation] = useState({
+  const [currentLocation, setCurrentLocation] = useState({
     latitude: -6.2088,
     longitude: 106.8456,
   });
+  const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLocationSelect = (latitude: number, longitude: number) => {
+  // Load weather for initial location
+  useEffect(() => {
+    loadWeatherForLocation(currentLocation.latitude, currentLocation.longitude);
+  }, [currentLocation.latitude, currentLocation.longitude]);
+
+  const loadWeatherForLocation = async (latitude: number, longitude: number) => {
+    setLoading(true);
+    try {
+      const weather = await WeatherService.getCurrentWeather(latitude, longitude);
+      setCurrentWeather(weather);
+    } catch (error) {
+      console.error('Error loading weather for selected location:', error);
+      Alert.alert('Error', 'Gagal memuat data cuaca untuk lokasi yang dipilih.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLocationSelect = async (latitude: number, longitude: number) => {
     setCurrentLocation({ latitude, longitude });
+    await loadWeatherForLocation(latitude, longitude);
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore & Firebase Demo</ThemedText>
-      </ThemedView>
-      
-      {/* Firebase Demo Section */}
-      <View style={styles.demoContainer}>
-        <FirebaseExample />
-      </View>
-
+    <View style={styles.container}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Peta Cuaca</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Jelajahi kondisi cuaca di berbagai lokasi
+        </ThemedText>
       </ThemedView>
       
       <View style={styles.mapContainer}>
         <WeatherMap
+          currentWeather={currentWeather || undefined}
           onLocationSelect={handleLocationSelect}
-          height={width * 0.8}
+          height={width * 0.75}
         />
+        {loading && (
+          <ThemedView style={styles.loadingOverlay}>
+            <ThemedText>Memuat data cuaca...</ThemedText>
+          </ThemedView>
+        )}
       </View>
 
       <ThemedView style={styles.infoContainer}>
-        <ThemedText type="subtitle">Informasi Peta</ThemedText>
+        <ThemedText type="subtitle">Cara Menggunakan</ThemedText>
         <ThemedText style={styles.description}>
-          Peta ini menampilkan kondisi cuaca real-time di berbagai lokasi. 
-          Anda dapat menjelajahi kondisi cuaca di area sekitar atau mencari lokasi tertentu.
+          • Tap pada peta untuk melihat cuaca di lokasi tersebut{'\n'}
+          • Gunakan tombol &quot;Gunakan Lokasi Saat Ini&quot; untuk kembali ke GPS{'\n'}
+          • Peta menampilkan kondisi cuaca real-time
         </ThemedText>
       </ThemedView>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -57,29 +80,44 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     padding: 20,
+    paddingBottom: 10,
     backgroundColor: 'transparent',
   },
-  demoContainer: {
-    margin: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 4,
   },
   mapContainer: {
+    flex: 1,
     margin: 16,
+    marginTop: 0,
     borderRadius: 12,
     overflow: 'hidden',
-    height: width * 0.8,
+    backgroundColor: '#FFFFFF',
   },
   infoContainer: {
     margin: 16,
+    marginTop: 0,
     padding: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
   },
   description: {
     marginTop: 8,
+    fontSize: 14,
     lineHeight: 20,
-    color: '#6B7280',
+    color: '#4B5563',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
   },
 });
