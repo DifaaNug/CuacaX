@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { LinearGradient } from 'expo-linear-gradient';
 import { TemperatureAnomaly } from '../types/weather';
 import { ThemedText } from './ThemedText';
 
@@ -19,10 +20,19 @@ export function TemperatureAnomalyChart({
   if (anomalies.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerIcon}>📊</Text>
-          <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
-        </View>
+        {/* Header dengan aksen biru */}
+        <LinearGradient
+          colors={['#4A90E2', '#2563EB']}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerIcon}>📊</Text>
+            <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
+          </View>
+        </LinearGradient>
+        
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataIcon}>📈</Text>
           <ThemedText style={styles.noDataText}>Tidak ada data anomali suhu</ThemedText>
@@ -78,10 +88,18 @@ export function TemperatureAnomalyChart({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerIcon}>📊</Text>
-        <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
-      </View>
+      {/* Header dengan aksen biru */}
+      <LinearGradient
+        colors={['#4A90E2', '#2563EB']}
+        style={styles.headerGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerIcon}>📊</Text>
+          <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
+        </View>
+      </LinearGradient>
 
       <View style={styles.chartContainer}>
         <LineChart
@@ -169,12 +187,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     margin: 16,
-    padding: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerGradient: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
   headerIcon: {
     fontSize: 24,
@@ -183,7 +213,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
     flex: 1,
   },
   chartContainer: {
@@ -191,7 +221,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     alignItems: 'center',
-    marginBottom: 16,
+    margin: 20,
+    marginTop: 0,
   },
   chart: {
     borderRadius: 16,
@@ -199,6 +230,7 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginHorizontal: 20,
     marginBottom: 20,
     gap: 24,
   },
@@ -214,13 +246,14 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#1F2937',
     fontWeight: '500',
   },
   noDataContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   noDataIcon: {
     fontSize: 48,
@@ -229,11 +262,12 @@ const styles = StyleSheet.create({
   },
   noDataText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
   },
   anomalySection: {
-    marginTop: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
   },
   anomalyHeader: {
     flexDirection: 'row',
@@ -255,11 +289,11 @@ const styles = StyleSheet.create({
   },
   anomalyCard: {
     width: 180,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   anomalyCardHeader: {
     flexDirection: 'row',
