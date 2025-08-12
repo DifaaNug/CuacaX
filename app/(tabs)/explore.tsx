@@ -43,7 +43,7 @@ export default function ExploreScreen() {
       <ThemedView style={styles.titleContainer}>
         <Text style={styles.title}>Peta Cuaca</Text>
         <Text style={styles.subtitle}>
-          Jelajahi kondisi cuaca di berbagai lokasi
+          Jelajahi peta interaktif dengan data cuaca real-time
         </Text>
       </ThemedView>
       
@@ -63,9 +63,9 @@ export default function ExploreScreen() {
       <ThemedView style={styles.infoContainer}>
         <Text style={styles.subtitleText}>Cara Menggunakan</Text>
         <Text style={styles.description}>
-          • Tap pada peta untuk membuka di browser atau input koordinat{'\n'}
-          • Gunakan tombol &quot;Gunakan Lokasi Saat Ini&quot; untuk GPS{'\n'}
-          • Peta menampilkan kondisi cuaca real-time
+          • Tap pada peta untuk membuka Google Maps di browser{'\n'}
+          • Gunakan tombol GPS untuk lokasi saat ini{'\n'}
+          • Pilih koordinat manual untuk lokasi spesifik
         </Text>
       </ThemedView>
     </View>
