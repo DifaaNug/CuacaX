@@ -158,15 +158,15 @@ export class HealthTipService {
     {
       id: 'general_3',
       title: 'Tetap Terinformasi',
-      description: 'Monitor weather forecasts and air quality reports. Sign up for emergency alerts from local authorities.',
+      description: 'Pantau prakiraan cuaca dan laporan kualitas udara. Daftar untuk peringatan darurat dari otoritas lokal.',
       category: 'general',
       conditions: ['always'],
       icon: '📱'
     },
     {
       id: 'general_4',
-      title: 'Maintain Good Nutrition',
-      description: 'Eat light, nutritious meals during hot weather. Include fruits and vegetables with high water content.',
+      title: 'Jaga Nutrisi yang Baik',
+      description: 'Makan makanan ringan dan bergizi saat cuaca panas. Sertakan buah dan sayuran dengan kandungan air tinggi.',
       category: 'general',
       conditions: ['temperature > 25'],
       icon: '🥗'
