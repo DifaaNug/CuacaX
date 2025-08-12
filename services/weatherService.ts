@@ -140,21 +140,12 @@ export class WeatherService {
         uvEstimate = Math.round(baseUV * timeMultiplier);
       }
       
-      console.log('🌞 Estimated UV Index (OpenWeather UV API deprecated):', uvEstimate);
-      console.log('📊 UV estimation based on:', {
-        isDayTime,
-        cloudiness: data.clouds.all,
-        weatherMain: data.weather[0].main,
-        time: now.getHours()
-      });
-      
       return uvEstimate;
     } catch (error) {
       console.error('Error fetching UV index:', error);
       // Fallback to moderate UV during day time
       const hour = new Date().getHours();
       const fallbackUV = hour >= 6 && hour <= 18 ? 6 : 0;
-      console.log('🌞 Fallback UV Index:', fallbackUV);
       return fallbackUV;
     }
   }
@@ -174,14 +165,6 @@ export class WeatherService {
       
       const aqi = pollution.main.aqi;
       const components = pollution.components;
-      
-      console.log('🌬️ Real Air Quality from API:', {
-        aqi: aqi,
-        pm25: components.pm2_5,
-        pm10: components.pm10,
-        o3: components.o3,
-        no2: components.no2
-      });
       
       const getQualityText = (aqi: number): AirQualityData['quality'] => {
         switch (aqi) {

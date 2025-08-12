@@ -158,7 +158,6 @@ export default function HomeScreen() {
 
       // Load temperature anomalies with current temperature for realistic simulation
       const anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7, weather.temperature);
-      console.log('📈 Temperature anomalies generated:', anomalies);
       setTemperatureAnomalies(anomalies);
 
       // Check for alerts
@@ -172,8 +171,10 @@ export default function HomeScreen() {
         ...(uvAlert ? [uvAlert] : [])
       ];
       
-      // Debug logging
-      console.log('New alerts generated:', newAlerts.length);
+      // Debug logging for development
+      if (__DEV__) {
+        console.log('New alerts generated:', newAlerts.length);
+      }
       
       // Clear old alerts and only keep today's relevant alerts
       const today = new Date().toDateString();
@@ -197,12 +198,17 @@ export default function HomeScreen() {
         }
       });
       
-      console.log('Final alerts count (today only):', allAlerts.length);
-      console.log('🎯 Setting alerts in UI state (always display for user awareness)');
+      if (__DEV__) {
+        console.log('Final alerts count (today only):', allAlerts.length);
+        console.log('🎯 Setting alerts in UI state (always display for user awareness)');
+      }
       
       // Always display alerts in UI for user awareness - push notification preferences are handled separately
       setAlerts(allAlerts);
-      console.log('✅ Alerts set in UI state:', allAlerts.length);
+      
+      if (__DEV__) {
+        console.log('✅ Alerts set in UI state:', allAlerts.length);
+      }
 
       // Get health tips
       const hasHeatWave = anomalies.some(a => a.type === 'heat_wave');
@@ -291,16 +297,16 @@ export default function HomeScreen() {
       const prevLocation = lastSelectedLocationRef.current;
       const currentLocation = selectedLocation;
       
-      // Only reload if location actually changed
-      if (!prevLocation || 
-          prevLocation.latitude !== currentLocation.latitude || 
-          prevLocation.longitude !== currentLocation.longitude) {
-        
-        console.log('🔄 Location changed to:', selectedLocation.name);
-        isLoadingWeatherRef.current = true;
-        lastSelectedLocationRef.current = selectedLocation;
-        
-        // Add a small delay to prevent rapid successive calls
+        // Only reload if location actually changed
+        if (!prevLocation || 
+            prevLocation.latitude !== currentLocation.latitude || 
+            prevLocation.longitude !== currentLocation.longitude) {
+          
+          if (__DEV__) {
+            console.log('🔄 Location changed to:', selectedLocation.name);
+          }
+          isLoadingWeatherRef.current = true;
+          lastSelectedLocationRef.current = selectedLocation;        // Add a small delay to prevent rapid successive calls
         const timer = setTimeout(async () => {
           try {
             await loadWeatherData();
