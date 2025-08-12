@@ -1,18 +1,16 @@
 import * as Location from 'expo-location';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { AirQualityCard } from '../../components/AirQualityCard';
 import { AlertsCard } from '../../components/AlertsCard';
-import { EmergencyTipsModal } from '../../components/EmergencyTipsModal';
 import { ErrorState } from '../../components/ErrorState';
-import { FloatingActionButton } from '../../components/FloatingActionButton';
 import { HealthTipsCard } from '../../components/HealthTipsCard';
 import { LastUpdate } from '../../components/LastUpdate';
 import { TemperatureAnomalyChart } from '../../components/TemperatureAnomalyChart';
 import { WeatherCard } from '../../components/WeatherCard';
 import { WeatherForecast } from '../../components/WeatherForecast';
 import { WeatherSkeleton } from '../../components/WeatherSkeleton';
-import { useLocation } from '../../contexts/LocationContext';
+import { useLocation, LocationData } from '../../contexts/LocationContext';
 import { AlertService } from '../../services/alertService';
 import { DatabaseService } from '../../services/databaseService';
 import { HapticService } from '../../services/hapticService';
@@ -32,11 +30,14 @@ export default function HomeScreen() {
   const [healthTips, setHealthTips] = useState<HealthTip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [forecastData, setForecastData] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { selectedLocation, resetToCurrentLocation } = useLocation();
+  
+  // Use ref to prevent excessive reloads when location changes rapidly
+  const isLoadingWeatherRef = useRef(false);
+  const lastSelectedLocationRef = useRef<LocationData | null>(null);
 
   const getCurrentLocation = useCallback(async (): Promise<{ lat: number; lon: number } | null> => {
     try {
@@ -69,10 +70,18 @@ export default function HomeScreen() {
   const generateRealForecast = useCallback(async (lat: number, lon: number) => {
     try {
       const forecastData = await WeatherService.getForecast(lat, lon);
-      const days = ['Hari ini', 'Besok', 'Lusa', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      
+      const getDayName = (dayOffset: number) => {
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + dayOffset);
+        
+        const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        return dayNames[targetDate.getDay()];
+      };
       
       return forecastData.slice(0, 5).map((forecast, index) => ({
-        day: index === 0 ? 'Hari ini' : days[index] || new Date(forecast.date).toLocaleDateString('id-ID', { weekday: 'short' }),
+        day: getDayName(index),
         icon: getWeatherIcon(forecast.icon),
         high: forecast.temperature.max,
         low: forecast.temperature.min,
@@ -149,6 +158,7 @@ export default function HomeScreen() {
 
       // Load temperature anomalies with current temperature for realistic simulation
       const anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7, weather.temperature);
+      console.log('📈 Temperature anomalies generated:', anomalies);
       setTemperatureAnomalies(anomalies);
 
       // Check for alerts
@@ -188,18 +198,18 @@ export default function HomeScreen() {
       });
       
       console.log('Final alerts count (today only):', allAlerts.length);
+      console.log('🎯 Setting alerts in UI state (always display for user awareness)');
+      
+      // Always display alerts in UI for user awareness - push notification preferences are handled separately
       setAlerts(allAlerts);
+      console.log('✅ Alerts set in UI state:', allAlerts.length);
 
       // Get health tips
       const hasHeatWave = anomalies.some(a => a.type === 'heat_wave');
       const hasColdWave = anomalies.some(a => a.type === 'cold_wave');
       
       const tips = HealthTipService.getRelevantTips(weather, airQualityData, hasHeatWave, hasColdWave);
-      const emergencyHealthTips = HealthTipService.getEmergencyTips(weather, airQualityData);
-      
-      // Combine regular tips with emergency tips
-      const allTips = [...tips, ...emergencyHealthTips];
-      setHealthTips(allTips);
+      setHealthTips(tips);
 
       // Save weather data to database for history
       await DatabaseService.saveWeatherHistory(weather);
@@ -233,6 +243,9 @@ export default function HomeScreen() {
 
   const initializeApp = useCallback(async () => {
     try {
+      // Clear any old English alerts first
+      await AlertService.clearEnglishAlerts();
+      
       // Wait for location permission first
       await requestLocationPermission();
       await loadWeatherData();
@@ -268,14 +281,41 @@ export default function HomeScreen() {
 
   useEffect(() => {
     initializeApp();
+    // Clear any old English alerts on app start
+    AlertService.clearEnglishAlerts();
   }, [initializeApp]);
 
   // Reload weather data when selected location changes - but prevent initial double call
   useEffect(() => {
-    if (selectedLocation && weatherData) { // Only call if we already have weather data (not initial load)
-      loadWeatherData();
+    if (selectedLocation && weatherData && !isLoadingWeatherRef.current) {
+      const prevLocation = lastSelectedLocationRef.current;
+      const currentLocation = selectedLocation;
+      
+      // Only reload if location actually changed
+      if (!prevLocation || 
+          prevLocation.latitude !== currentLocation.latitude || 
+          prevLocation.longitude !== currentLocation.longitude) {
+        
+        console.log('🔄 Location changed to:', selectedLocation.name);
+        isLoadingWeatherRef.current = true;
+        lastSelectedLocationRef.current = selectedLocation;
+        
+        // Add a small delay to prevent rapid successive calls
+        const timer = setTimeout(async () => {
+          try {
+            await loadWeatherData();
+          } finally {
+            isLoadingWeatherRef.current = false;
+          }
+        }, 500); // 500ms delay to prevent rapid calls
+        
+        return () => {
+          clearTimeout(timer);
+          isLoadingWeatherRef.current = false;
+        };
+      }
     }
-  }, [selectedLocation, loadWeatherData, weatherData]);
+  }, [selectedLocation, weatherData, loadWeatherData]);
 
   const onRefresh = useCallback(async () => {
     HapticService.light(); // Haptic feedback on refresh
@@ -296,19 +336,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error dismissing alert:', error);
     }
-  };
-
-  const handleEmergencyTips = () => {
-    setShowEmergencyModal(true);
-  };
-
-  const getEmergencyTips = (): HealthTip[] => {
-    return healthTips.filter(tip => 
-      tip.category === 'heat' || 
-      tip.category === 'cold' || 
-      tip.category === 'air_quality' ||
-      tip.category === 'uv'
-    );
   };
 
   if (loading) {
@@ -376,24 +403,10 @@ export default function HomeScreen() {
         <HealthTipsCard 
           tips={healthTips}
         />
-
-        {/* Emergency Tips Modal */}
-        <EmergencyTipsModal
-          visible={showEmergencyModal}
-          onClose={() => setShowEmergencyModal(false)}
-          emergencyTips={getEmergencyTips()}
-        />
-
-        {/* Floating Action Button for Emergency Tips */}
-        <FloatingActionButton
-          onPress={handleEmergencyTips}
-          icon="🚨"
-          backgroundColor="#EF4444"
-        />
       </ScrollView>
     </View>
   );
-  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -405,7 +418,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xxl * 2, // Space for FAB
+    paddingBottom: spacing.lg, // Reduced padding since no FAB
     minHeight: screenWidth * 1.2,
   },
 });
