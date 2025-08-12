@@ -1,9 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useThemeColor } from '../hooks/useThemeColor';
 import { Alert } from '../types/weather';
-import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
+import { shadowPresets } from '../utils/styleUtils';
 
 interface AlertsCardProps {
   alerts: Alert[];
@@ -11,9 +9,6 @@ interface AlertsCardProps {
 }
 
 export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
-  const backgroundColor = useThemeColor({}, 'cardBackground');
-  const borderColor = useThemeColor({}, 'border');
-
   const getSeverityColor = (severity: Alert['severity']) => {
     switch (severity) {
       case 'low': return '#48BB78';
@@ -71,21 +66,21 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
 
   if (alerts.length === 0) {
     return (
-      <ThemedView style={[styles.container, { backgroundColor, borderColor }]}>
+      <View style={[styles.container, styles.noAlertsContainer, { backgroundColor: '#FFFFFF' }]}>
         <View style={styles.header}>
           <Text style={styles.headerIcon}>🛡️</Text>
-          <ThemedText style={styles.title}>Peringatan Cuaca</ThemedText>
+          <Text style={styles.title}>Peringatan Cuaca</Text>
         </View>
-        <View style={styles.noAlertsContainer}>
+        <View style={styles.noAlertsContent}>
           <Text style={styles.noAlertsIcon}>✅</Text>
-          <ThemedText style={styles.noAlertsText}>
+          <Text style={styles.noAlertsText}>
             Tidak ada peringatan cuaca aktif saat ini
-          </ThemedText>
-          <ThemedText style={styles.noAlertsSubtext}>
+          </Text>
+          <Text style={styles.noAlertsSubtext}>
             Kami akan memberi tahu Anda jika ada kondisi cuaca yang perlu diwaspadai
-          </ThemedText>
+          </Text>
         </View>
-      </ThemedView>
+      </View>
     );
   }
 
@@ -94,10 +89,10 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
   const dismissedAlerts = alerts.filter(alert => !alert.isActive);
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor, borderColor }]}>
+    <View style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
       <View style={styles.header}>
         <Text style={styles.headerIcon}>⚠️</Text>
-        <ThemedText style={styles.title}>Peringatan Cuaca</ThemedText>
+        <Text style={styles.title}>Peringatan Cuaca</Text>
         {activeAlerts.length > 0 && (
           <View style={[styles.alertBadge, { backgroundColor: getSeverityColor('high') }]}>
             <Text style={styles.alertBadgeText}>{activeAlerts.length}</Text>
@@ -116,24 +111,26 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
             key={alert.id} 
             style={[
               styles.alertCard,
-              styles.activeAlert,
               { borderLeftColor: getSeverityColor(alert.severity) }
             ]}
           >
             <View style={styles.alertHeader}>
               <Text style={styles.alertIcon}>{getAlertIcon(alert.type)}</Text>
               <View style={styles.alertHeaderText}>
-                <ThemedText style={styles.alertTitle}>{alert.title}</ThemedText>
+                <Text style={styles.alertTitle}>{alert.title}</Text>
                 <View style={styles.alertMeta}>
                   <Text style={[
                     styles.alertSeverity,
-                    { color: getSeverityColor(alert.severity) }
+                    { 
+                      color: getSeverityColor(alert.severity),
+                      backgroundColor: `${getSeverityColor(alert.severity)}20`
+                    }
                   ]}>
                     {getSeverityText(alert.severity)}
                   </Text>
-                  <ThemedText style={styles.alertTime}>
+                  <Text style={styles.alertTime}>
                     {formatDate(alert.timestamp)} • {formatTime(alert.timestamp)}
-                  </ThemedText>
+                  </Text>
                 </View>
               </View>
               {onDismissAlert && (
@@ -148,24 +145,24 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
               )}
             </View>
 
-            <ThemedText style={styles.alertMessage}>
+            <Text style={styles.alertMessage}>
               {alert.message}
-            </ThemedText>
+            </Text>
 
             <View style={styles.alertLocation}>
               <Text style={styles.locationIcon}>📍</Text>
-              <ThemedText style={styles.locationText}>{alert.location}</ThemedText>
+              <Text style={styles.locationText}>{alert.location}</Text>
             </View>
 
             {alert.recommendations.length > 0 && (
               <View style={styles.recommendationsContainer}>
-                <ThemedText style={styles.recommendationsTitle}>
+                <Text style={styles.recommendationsTitle}>
                   Rekomendasi:
-                </ThemedText>
+                </Text>
                 {alert.recommendations.slice(0, 3).map((rec, index) => (
-                  <ThemedText key={index} style={styles.recommendationItem}>
+                  <Text key={index} style={styles.recommendationItem}>
                     • {rec}
-                  </ThemedText>
+                  </Text>
                 ))}
               </View>
             )}
@@ -175,7 +172,7 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
         {/* Recently Dismissed Alerts */}
         {dismissedAlerts.length > 0 && activeAlerts.length > 0 && (
           <View style={styles.sectionDivider}>
-            <ThemedText style={styles.sectionTitle}>Peringatan Sebelumnya</ThemedText>
+            <Text style={styles.sectionTitle}>Peringatan Sebelumnya</Text>
           </View>
         )}
 
@@ -193,37 +190,28 @@ export function AlertsCard({ alerts, onDismissAlert }: AlertsCardProps) {
                 {getAlertIcon(alert.type)}
               </Text>
               <View style={styles.alertHeaderText}>
-                <ThemedText style={[styles.alertTitle, styles.dismissedText]}>
+                <Text style={[styles.alertTitle, styles.dismissedText]}>
                   {alert.title}
-                </ThemedText>
-                <ThemedText style={[styles.alertTime, styles.dismissedText]}>
+                </Text>
+                <Text style={[styles.alertTime, styles.dismissedText]}>
                   {formatDate(alert.timestamp)} • {formatTime(alert.timestamp)}
-                </ThemedText>
+                </Text>
               </View>
             </View>
           </View>
         ))}
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
-    margin: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    margin: 12,
+    overflow: 'hidden',
+    ...shadowPresets.card,
   },
   header: {
     flexDirection: 'row',
@@ -233,11 +221,19 @@ const styles = StyleSheet.create({
   headerIcon: {
     fontSize: 20,
     marginRight: 8,
+    color: '#374151',
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
+    color: '#1F2937',
+  },
+  titleWhite: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+    color: '#1F2937',
   },
   alertBadge: {
     borderRadius: 12,
@@ -245,6 +241,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     minWidth: 24,
     alignItems: 'center',
+    backgroundColor: '#EF4444',
   },
   alertBadgeText: {
     color: '#FFFFFF',
@@ -252,38 +249,45 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   noAlertsContainer: {
+    minHeight: 120,
+  },
+  noAlertsContent: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 16,
   },
   noAlertsIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 32,
+    marginBottom: 12,
   },
   noAlertsText: {
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+    color: '#1F2937',
   },
   noAlertsSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    opacity: 0.7,
+    opacity: 0.85,
+    color: '#6B7280',
+    lineHeight: 18,
   },
   alertsContainer: {
     maxHeight: 400,
   },
   alertCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
   },
   activeAlert: {
-    backgroundColor: 'rgba(245, 101, 101, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   dismissedAlert: {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
   },
   alertHeader: {
     flexDirection: 'row',
@@ -305,6 +309,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: '#1F2937',
   },
   alertMeta: {
     flexDirection: 'row',
@@ -315,33 +320,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     marginRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   alertTime: {
     fontSize: 12,
     opacity: 0.7,
+    color: '#6B7280',
   },
   dismissButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(107, 114, 128, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   dismissButtonText: {
     fontSize: 18,
-    color: '#666',
+    color: '#6B7280',
     fontWeight: 'bold',
   },
   alertMessage: {
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 12,
+    color: '#374151',
   },
   alertLocation: {
     flexDirection: 'row',
@@ -355,9 +360,10 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 12,
     opacity: 0.7,
+    color: '#6B7280',
   },
   recommendationsContainer: {
-    backgroundColor: 'rgba(0, 102, 204, 0.05)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     borderRadius: 8,
     padding: 12,
   },
@@ -365,22 +371,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 8,
+    color: '#1E40AF',
   },
   recommendationItem: {
     fontSize: 12,
     lineHeight: 16,
     marginBottom: 4,
+    color: '#374151',
   },
   sectionDivider: {
     marginVertical: 16,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopColor: 'rgba(107, 114, 128, 0.2)',
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    opacity: 0.7,
+    opacity: 0.9,
+    color: '#6B7280',
   },
   dismissedText: {
     opacity: 0.6,
