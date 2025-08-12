@@ -5,6 +5,7 @@ import { ThemedView } from '../../components/ThemedView';
 import { WeatherMap } from '../../components/WeatherMap';
 import { WeatherService } from '../../services/weatherService';
 import { WeatherData } from '../../types/weather';
+import { shadowPresets } from '../../utils/styleUtils';
 
 export default function ExploreScreen() {
   const [currentLocation, setCurrentLocation] = useState({
@@ -94,11 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadowPresets.medium,
   },
   infoContainer: {
     marginHorizontal: 16,
@@ -106,11 +103,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadowPresets.small,
   },
   description: {
     marginTop: 8,
