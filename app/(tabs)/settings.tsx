@@ -105,6 +105,44 @@ export default function SettingsScreen() {
     );
   };
 
+  const resetNotificationSettings = async () => {
+    Alert.alert(
+      'Reset Pengaturan Notifikasi',
+      'Ini akan mengaktifkan kembali semua notifikasi dan menghapus alert lama.',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Reset',
+          onPress: async () => {
+            try {
+              const resetPreferences = {
+                ...preferences,
+                alertsEnabled: true,
+                notificationSettings: {
+                  heatWave: true,
+                  coldWave: true,
+                  airQuality: true,
+                  uvIndex: true,
+                  severeWeather: true,
+                },
+              };
+              await savePreferences(resetPreferences);
+              
+              // Clear old alerts
+              const { AlertService } = await import('../../services/alertService');
+              await AlertService.clearAllAlerts();
+              
+              Alert.alert('Berhasil', 'Pengaturan notifikasi telah direset dan alert lama dihapus');
+            } catch (error) {
+              console.error('Error resetting notifications:', error);
+              Alert.alert('Error', 'Gagal mereset pengaturan notifikasi');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -248,6 +286,10 @@ export default function SettingsScreen() {
       <ThemedView style={styles.section}>
         <Text style={styles.subtitle}>Manajemen Data</Text>
         
+        <TouchableOpacity style={styles.resetButton} onPress={resetNotificationSettings}>
+          <Text style={styles.resetButtonText}>Reset Pengaturan Notifikasi</Text>
+        </TouchableOpacity>
+        
         <TouchableOpacity style={styles.dangerButton} onPress={clearAllData}>
           <Text style={styles.dangerButtonText}>Hapus Semua Data</Text>
         </TouchableOpacity>
@@ -319,6 +361,18 @@ const styles = StyleSheet.create({
   },
   activeUnitText: {
     color: '#FFFFFF',
+  },
+  resetButton: {
+    backgroundColor: '#10B981',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   dangerButton: {
     backgroundColor: '#EF4444',
