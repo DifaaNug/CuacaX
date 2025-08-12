@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { HealthTip } from '../types/weather';
 import { ThemedText } from './ThemedText';
 
@@ -64,10 +65,18 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
         },
       ]}
     >
-      <View style={styles.header}>
-        <Text style={styles.headerIcon}>💡</Text>
-        <ThemedText style={styles.title}>Tips Kesehatan</ThemedText>
-      </View>
+      {/* Header dengan aksen biru */}
+      <LinearGradient
+        colors={['#4A90E2', '#2563EB']}
+        style={styles.headerGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerIcon}>💡</Text>
+          <ThemedText style={styles.title}>Tips Kesehatan</ThemedText>
+        </View>
+      </LinearGradient>
 
       {emergencyTips.length > 0 && (
         <View style={styles.emergencySection}>
@@ -130,27 +139,40 @@ const styles = StyleSheet.create({
     margin: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: screenWidth * 0.05, // Responsive padding
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerGradient: {
+    paddingHorizontal: screenWidth * 0.05,
+    paddingTop: screenWidth * 0.05,
+    paddingBottom: screenWidth * 0.04,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
   headerIcon: {
-    fontSize: Math.min(24, screenWidth * 0.06), // Responsive icon size
+    fontSize: Math.min(24, screenWidth * 0.06),
     marginRight: 12,
   },
   title: {
-    fontSize: Math.min(20, screenWidth * 0.05), // Responsive font size
+    fontSize: Math.min(20, screenWidth * 0.05),
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
   emergencySection: {
     backgroundColor: '#FEF2F2',
     borderRadius: 16,
-    padding: screenWidth * 0.04, // Responsive padding
+    marginHorizontal: screenWidth * 0.05,
     marginBottom: 20,
+    padding: screenWidth * 0.04,
     borderWidth: 1,
     borderColor: '#FECACA',
   },
@@ -197,6 +219,7 @@ const styles = StyleSheet.create({
   },
   tipsScroll: {
     marginBottom: 20,
+    marginHorizontal: screenWidth * 0.05,
   },
   tipsContainer: {
     paddingRight: 16,
@@ -207,6 +230,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   tipHeader: {
     marginBottom: 16,
@@ -261,6 +294,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#BAE6FD',
+    marginHorizontal: screenWidth * 0.05,
+    marginBottom: screenWidth * 0.05,
   },
   infoIcon: {
     fontSize: 16,

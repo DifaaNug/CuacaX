@@ -2,162 +2,162 @@ import { AirQualityData, HealthTip, WeatherData } from '../types/weather';
 
 export class HealthTipService {
   private static healthTips: HealthTip[] = [
-    // Heat-related tips
+    // Tips terkait cuaca panas
     {
       id: 'heat_1',
-      title: 'Stay Hydrated',
-      description: 'Drink plenty of water throughout the day, even if you don\'t feel thirsty. Avoid alcohol and caffeine as they can lead to dehydration.',
+      title: 'Tetap Terhidrasi',
+      description: 'Minum banyak air sepanjang hari, meskipun tidak merasa haus. Hindari alkohol dan kafein karena dapat menyebabkan dehidrasi.',
       category: 'heat',
       conditions: ['temperature > 30', 'heat_wave'],
       icon: '💧'
     },
     {
       id: 'heat_2',
-      title: 'Dress Appropriately',
-      description: 'Wear light-colored, loose-fitting clothing made of breathable fabrics like cotton. Use a wide-brimmed hat and sunglasses.',
+      title: 'Berpakaian yang Tepat',
+      description: 'Kenakan pakaian berwarna terang, longgar, dan terbuat dari kain yang dapat menyerap keringat seperti katun. Gunakan topi bertepi lebar dan kacamata hitam.',
       category: 'heat',
       conditions: ['temperature > 28', 'heat_wave'],
       icon: '👕'
     },
     {
       id: 'heat_3',
-      title: 'Seek Air Conditioning',
-      description: 'Stay in air-conditioned spaces during the hottest parts of the day. If you don\'t have AC, visit public places like malls or libraries.',
+      title: 'Cari Tempat Ber-AC',
+      description: 'Berada di ruangan ber-AC selama bagian terpanas hari. Jika tidak memiliki AC, kunjungi tempat umum seperti mal atau perpustakaan.',
       category: 'heat',
       conditions: ['temperature > 35', 'heat_wave'],
       icon: '❄️'
     },
     {
       id: 'heat_4',
-      title: 'Limit Outdoor Activities',
-      description: 'Avoid strenuous outdoor activities during peak heat hours (10 AM - 4 PM). If you must be outside, take frequent breaks in shade.',
+      title: 'Batasi Aktivitas Outdoor',
+      description: 'Hindari aktivitas berat di luar ruangan saat panas puncak (10 pagi - 4 sore). Jika harus keluar, istirahat sering di tempat teduh.',
       category: 'heat',
       conditions: ['temperature > 32', 'heat_wave'],
       icon: '🏃‍♂️'
     },
     
-    // Cold-related tips
+    // Tips terkait cuaca dingin
     {
       id: 'cold_1',
-      title: 'Layer Your Clothing',
-      description: 'Dress in multiple layers to trap warm air. Wear moisture-wicking base layers and insulating middle layers.',
+      title: 'Berpakaian Berlapis',
+      description: 'Kenakan pakaian berlapis untuk menjebak udara hangat. Gunakan pakaian dalam yang menyerap kelembaban dan lapisan tengah yang menghangatkan.',
       category: 'cold',
       conditions: ['temperature < 5', 'cold_wave'],
       icon: '🧥'
     },
     {
       id: 'cold_2',
-      title: 'Protect Extremities',
-      description: 'Wear warm gloves, hat, and thick socks to prevent frostbite. Keep hands and feet dry.',
+      title: 'Lindungi Bagian Ujung Tubuh',
+      description: 'Kenakan sarung tangan hangat, topi, dan kaus kaki tebal untuk mencegah radang dingin. Jaga tangan dan kaki tetap kering.',
       category: 'cold',
       conditions: ['temperature < 0', 'cold_wave'],
       icon: '🧤'
     },
     {
       id: 'cold_3',
-      title: 'Stay Warm and Dry',
-      description: 'Keep your home adequately heated. Avoid getting wet in cold weather and change out of wet clothes immediately.',
+      title: 'Tetap Hangat dan Kering',
+      description: 'Jaga rumah agar cukup hangat. Hindari basah saat cuaca dingin dan segera ganti pakaian basah.',
       category: 'cold',
       conditions: ['temperature < 10', 'cold_wave'],
       icon: '🏠'
     },
     {
       id: 'cold_4',
-      title: 'Watch for Hypothermia Signs',
-      description: 'Be aware of symptoms like uncontrollable shivering, confusion, and drowsiness. Seek immediate medical attention if these occur.',
+      title: 'Waspadai Tanda Hipotermia',
+      description: 'Waspadai gejala seperti menggigil tidak terkendali, kebingungan, dan mengantuk. Segera cari bantuan medis jika terjadi.',
       category: 'cold',
       conditions: ['temperature < -5', 'cold_wave'],
       icon: '🚨'
     },
     
-    // Air quality tips
+    // Tips kualitas udara
     {
       id: 'air_1',
-      title: 'Stay Indoors',
-      description: 'Keep windows and doors closed when air quality is poor. Use air purifiers if available.',
+      title: 'Tetap di Dalam Ruangan',
+      description: 'Tutup jendela dan pintu saat kualitas udara buruk. Gunakan pembersih udara jika tersedia.',
       category: 'air_quality',
       conditions: ['aqi > 100'],
       icon: '🏠'
     },
     {
       id: 'air_2',
-      title: 'Wear a Mask',
-      description: 'Use N95 or KN95 masks when going outside during poor air quality days.',
+      title: 'Gunakan Masker',
+      description: 'Gunakan masker N95 atau KN95 saat keluar rumah pada hari kualitas udara buruk.',
       category: 'air_quality',
       conditions: ['aqi > 150'],
       icon: '😷'
     },
     {
       id: 'air_3',
-      title: 'Limit Outdoor Exercise',
-      description: 'Avoid strenuous outdoor activities when air quality is poor. Exercise indoors instead.',
+      title: 'Batasi Olahraga Luar Ruangan',
+      description: 'Hindari aktivitas berat di luar ruangan saat kualitas udara buruk. Olahraga di dalam ruangan saja.',
       category: 'air_quality',
       conditions: ['aqi > 100'],
       icon: '💪'
     },
     {
       id: 'air_4',
-      title: 'Use Air Purifiers',
-      description: 'Run air purifiers in your home, especially in bedrooms. Keep HEPA filters clean and replace regularly.',
+      title: 'Gunakan Pembersih Udara',
+      description: 'Jalankan pembersih udara di rumah, terutama di kamar tidur. Jaga filter HEPA tetap bersih dan ganti secara teratur.',
       category: 'air_quality',
       conditions: ['aqi > 50'],
       icon: '🌪️'
     },
     
-    // UV protection tips
+    // Tips perlindungan UV
     {
       id: 'uv_1',
-      title: 'Apply Sunscreen',
-      description: 'Use broad-spectrum sunscreen with SPF 30 or higher. Reapply every 2 hours and after swimming or sweating.',
+      title: 'Gunakan Tabir Surya',
+      description: 'Gunakan tabir surya spektrum luas dengan SPF 30 atau lebih tinggi. Oleskan ulang setiap 2 jam dan setelah berenang atau berkeringat.',
       category: 'uv',
       conditions: ['uv_index > 6'],
       icon: '🧴'
     },
     {
       id: 'uv_2',
-      title: 'Seek Shade',
-      description: 'Stay in shade between 10 AM and 4 PM when UV rays are strongest. Use umbrellas, trees, or shelters.',
+      title: 'Cari Tempat Teduh',
+      description: 'Berada di tempat teduh antara pukul 10 pagi dan 4 sore saat sinar UV paling kuat. Gunakan payung, pohon, atau tempat berlindung.',
       category: 'uv',
       conditions: ['uv_index > 8'],
       icon: '🌳'
     },
     {
       id: 'uv_3',
-      title: 'Wear Protective Clothing',
-      description: 'Cover up with long-sleeved shirts, long pants, and wide-brimmed hats. Choose tightly woven fabrics.',
+      title: 'Gunakan Pakaian Pelindung',
+      description: 'Tutup tubuh dengan kemeja lengan panjang, celana panjang, dan topi bertepi lebar. Pilih kain yang rapat.',
       category: 'uv',
       conditions: ['uv_index > 7'],
       icon: '👒'
     },
     {
       id: 'uv_4',
-      title: 'Protect Your Eyes',
-      description: 'Wear sunglasses that block 99-100% of UV-A and UV-B rays. Look for labels that specify UV protection.',
+      title: 'Lindungi Mata Anda',
+      description: 'Gunakan kacamata hitam yang memblokir 99-100% sinar UV-A dan UV-B. Cari label yang menyebutkan perlindungan UV.',
       category: 'uv',
       conditions: ['uv_index > 5'],
       icon: '🕶️'
     },
     
-    // General health tips
+    // Tips kesehatan umum
     {
       id: 'general_1',
-      title: 'Check on Vulnerable People',
-      description: 'Regularly check on elderly family members, neighbors, and people with chronic health conditions during extreme weather.',
+      title: 'Periksa Orang Rentan',
+      description: 'Secara teratur periksa anggota keluarga lansia, tetangga, dan orang dengan kondisi kesehatan kronis selama cuaca ekstrem.',
       category: 'general',
       conditions: ['temperature > 35', 'temperature < 0', 'aqi > 150'],
       icon: '👥'
     },
     {
       id: 'general_2',
-      title: 'Know Emergency Signs',
-      description: 'Learn to recognize signs of heat exhaustion, hypothermia, and respiratory distress. Call emergency services if needed.',
+      title: 'Kenali Tanda Darurat',
+      description: 'Pelajari cara mengenali tanda kelelahan panas, hipotermia, dan gangguan pernapasan. Hubungi layanan darurat jika diperlukan.',
       category: 'general',
       conditions: ['temperature > 35', 'temperature < -5', 'aqi > 200'],
       icon: '🚑'
     },
     {
       id: 'general_3',
-      title: 'Stay Informed',
+      title: 'Tetap Terinformasi',
       description: 'Monitor weather forecasts and air quality reports. Sign up for emergency alerts from local authorities.',
       category: 'general',
       conditions: ['always'],
