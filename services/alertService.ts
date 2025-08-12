@@ -41,10 +41,20 @@ export class AlertService {
     const alerts: Alert[] = [];
     const preferences = await this.getNotificationPreferences();
     
+    console.log('🌡️ Checking temperature anomalies:', {
+      anomaliesCount: anomalies.length,
+      location,
+      preferences,
+      alertsEnabled: preferences
+    });
+    
     // Only check TODAY's anomaly (most recent) for current conditions
     const todayAnomaly = anomalies[anomalies.length - 1]; // Last item is today
     
+    console.log('📊 Today anomaly:', todayAnomaly);
+    
     if (!todayAnomaly || todayAnomaly.type === 'normal') {
+      console.log('⚪ No temperature alert needed - conditions are normal');
       return alerts; // No alert needed for normal conditions
     }
 
@@ -52,7 +62,8 @@ export class AlertService {
     const today = new Date().toDateString();
     const existingAlerts = await this.getActiveAlerts();
     
-    if (todayAnomaly.type === 'heat_wave' && preferences.heatWave) {
+    if (todayAnomaly.type === 'heat_wave') {
+      console.log('🔥 Checking for heat wave alert...');
       const existingHeatAlert = existingAlerts.find(
         alert => alert.type === 'heat_wave' && 
         alert.location === location &&
@@ -60,11 +71,24 @@ export class AlertService {
       );
       
       if (!existingHeatAlert) {
+        console.log('🚨 Creating heat wave alert for UI display');
         const alert = this.createHeatWaveAlert(todayAnomaly, location);
         alerts.push(alert);
-        await this.sendNotification(alert);
+        
+        // Only send push notification if user has enabled heat wave alerts
+        if (preferences.heatWave) {
+          console.log('📱 Sending heat wave push notification');
+          await this.sendNotification(alert);
+        } else {
+          console.log('🔇 Heat wave push notification disabled by user');
+        }
+      } else {
+        console.log('⏭️ Heat wave alert already exists for today');
+        // Add existing alert to display in UI
+        alerts.push(existingHeatAlert);
       }
-    } else if (todayAnomaly.type === 'cold_wave' && preferences.coldWave) {
+    } else if (todayAnomaly.type === 'cold_wave') {
+      console.log('🧊 Checking for cold wave alert...');
       const existingColdAlert = existingAlerts.find(
         alert => alert.type === 'cold_wave' && 
         alert.location === location &&
@@ -72,14 +96,29 @@ export class AlertService {
       );
       
       if (!existingColdAlert) {
+        console.log('🚨 Creating cold wave alert for UI display');
         const alert = this.createColdWaveAlert(todayAnomaly, location);
         alerts.push(alert);
-        await this.sendNotification(alert);
+        
+        // Only send push notification if user has enabled cold wave alerts
+        if (preferences.coldWave) {
+          console.log('📱 Sending cold wave push notification');
+          await this.sendNotification(alert);
+        } else {
+          console.log('🔇 Cold wave push notification disabled by user');
+        }
+      } else {
+        console.log('⏭️ Cold wave alert already exists for today');
+        // Add existing alert to display in UI
+        alerts.push(existingColdAlert);
       }
     }
     
     if (alerts.length > 0) {
+      console.log('💾 Saving alerts to storage:', alerts.length);
       await this.saveAlerts(alerts);
+    } else {
+      console.log('📭 No new temperature alerts to save');
     }
     return alerts;
   }
@@ -87,8 +126,9 @@ export class AlertService {
   static async checkAirQuality(airQuality: AirQualityData, location: string): Promise<Alert | null> {
     const preferences = await this.getNotificationPreferences();
     
-    if (!preferences.airQuality || airQuality.aqi <= 2) {
-      return null;
+    // Always create alert for UI display if air quality is poor
+    if (airQuality.aqi <= 2) {
+      return null; // No alert needed for good air quality
     }
 
     // Check if we already have an air quality alert for today to prevent duplicates
@@ -101,7 +141,7 @@ export class AlertService {
     );
 
     if (existingAirAlert) {
-      return existingAirAlert; // Return existing alert instead of creating new one
+      return existingAirAlert; // Return existing alert for UI display
     }
     
     const getQualityText = (aqi: number) => {
@@ -130,7 +170,14 @@ export class AlertService {
       ]
     };
     
-    await this.sendNotification(alert);
+    // Only send push notification if user has enabled air quality alerts
+    if (preferences.airQuality) {
+      console.log('📱 Sending air quality push notification');
+      await this.sendNotification(alert);
+    } else {
+      console.log('🔇 Air quality push notification disabled by user');
+    }
+    
     await this.saveAlert(alert);
     return alert;
   }
@@ -138,8 +185,9 @@ export class AlertService {
   static async checkUVIndex(uvIndex: number, location: string): Promise<Alert | null> {
     const preferences = await this.getNotificationPreferences();
     
-    if (!preferences.uvIndex || uvIndex < 8) {
-      return null;
+    // Always create alert for UI display if UV index is high
+    if (uvIndex < 8) {
+      return null; // No alert needed for safe UV levels
     }
 
     // Check if we already have a UV alert for today to prevent duplicates
@@ -181,7 +229,14 @@ export class AlertService {
       ]
     };
     
-    await this.sendNotification(alert);
+    // Only send push notification if user has enabled UV index alerts
+    if (preferences.uvIndex) {
+      console.log('📱 Sending UV index push notification');
+      await this.sendNotification(alert);
+    } else {
+      console.log('🔇 UV index push notification disabled by user');
+    }
+    
     await this.saveAlert(alert);
     return alert;
   }
@@ -413,19 +468,66 @@ export class AlertService {
     }
   }
 
+  // Function to clear alerts with English messages and regenerate with Indonesian
+  static async clearEnglishAlerts(): Promise<void> {
+    try {
+      const alerts = await this.getStoredAlerts();
+      const englishKeywords = ['Take precautions', 'above normal', 'Heat Wave Alert', 'Temperature', '°C ('];
+      
+      const filteredAlerts = alerts.filter(alert => {
+        const hasEnglishContent = englishKeywords.some(keyword => 
+          alert.title.includes(keyword) || alert.message.includes(keyword)
+        );
+        return !hasEnglishContent;
+      });
+      
+      await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(filteredAlerts));
+      console.log(`Cleared English alerts: ${alerts.length} -> ${filteredAlerts.length}`);
+    } catch (error) {
+      console.error('Error clearing English alerts:', error);
+    }
+  }
+
   private static async getNotificationPreferences() {
     try {
-      const prefsJson = await AsyncStorage.getItem(this.PREFERENCES_STORAGE_KEY);
-      if (!prefsJson) {
-        return {
-          heatWave: true,
-          coldWave: true,
-          airQuality: true,
-          uvIndex: true,
-          severeWeather: true
-        };
+      // First try to get from the new preferences structure used by Settings
+      const prefsJson = await AsyncStorage.getItem('userPreferences');
+      if (prefsJson) {
+        const userPrefs = JSON.parse(prefsJson);
+        console.log('🔍 User preferences found:', userPrefs);
+        
+        if (userPrefs.alertsEnabled === false) {
+          console.log('⚠️ Notifications disabled by user preferences');
+          return {
+            heatWave: false,
+            coldWave: false,
+            airQuality: false,
+            uvIndex: false,
+            severeWeather: false
+          };
+        }
+        
+        // Return the notification settings
+        if (userPrefs.notificationSettings) {
+          console.log('📱 Using notification settings:', userPrefs.notificationSettings);
+          return userPrefs.notificationSettings;
+        }
       }
-      return JSON.parse(prefsJson);
+      
+      // Fallback to old preferences structure
+      const oldPrefsJson = await AsyncStorage.getItem(this.PREFERENCES_STORAGE_KEY);
+      if (oldPrefsJson) {
+        return JSON.parse(oldPrefsJson);
+      }
+      
+      // Default preferences if nothing is found
+      return {
+        heatWave: true,
+        coldWave: true,
+        airQuality: true,
+        uvIndex: true,
+        severeWeather: true
+      };
     } catch (error) {
       console.error('Error getting notification preferences:', error);
       return {
