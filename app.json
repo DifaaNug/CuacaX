@@ -1,14 +1,13 @@
 {
   "expo": {
-    "name": "CuacaX - Weather Health Monitor",
-    "slug": "CuacaX",
+    "name": "CuacaX",
+    "slug": "cuacax",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cuacax",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "projectId": "33b491d0-1bb1-43fe-8aeb-d0dd308dabbf",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -30,7 +29,7 @@
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
       ],
-      "package": "com.cuacax.weatherhealth"
+      "package": "com.cuacax.app"
     },
     "web": {
       "bundler": "metro",
