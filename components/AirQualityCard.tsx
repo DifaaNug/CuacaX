@@ -2,7 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { AirQualityData } from '../types/weather';
-import { ThemedText } from './ThemedText';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -66,7 +65,7 @@ export function AirQualityCard({ airQuality, uvIndex }: AirQualityCardProps) {
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
         {
@@ -82,36 +81,36 @@ export function AirQualityCard({ airQuality, uvIndex }: AirQualityCardProps) {
             <View style={[styles.iconContainer, { backgroundColor: getAQIColor(airQuality.aqi) }]}>
               <Text style={styles.cardIcon}>💨</Text>
             </View>
-            <ThemedText style={styles.cardTitle}>Kualitas Udara</ThemedText>
+            <Text style={styles.cardTitle}>Kualitas Udara</Text>
           </View>
 
           <View style={styles.progressContainer}>
             <View style={[styles.progressRing, { borderColor: getAQIColor(airQuality.aqi) }]}>
-              <ThemedText style={styles.progressValue}>{airQuality.aqi}</ThemedText>
+              <Text style={styles.progressValue}>{airQuality.aqi}</Text>
             </View>
-            <ThemedText style={styles.progressLabel}>AQI</ThemedText>
+            <Text style={styles.progressLabel}>AQI</Text>
           </View>
 
           <View style={[styles.statusBadge, { backgroundColor: getAQIColor(airQuality.aqi) }]}>
-            <ThemedText style={styles.statusText}>{getAQIStatus(airQuality.aqi)}</ThemedText>
+            <Text style={styles.statusText}>{getAQIStatus(airQuality.aqi)}</Text>
           </View>
 
           <View style={styles.pollutantsGrid}>
             <View style={styles.pollutantItem}>
-              <ThemedText style={styles.pollutantLabel}>PM2.5</ThemedText>
-              <ThemedText style={styles.pollutantValue}>{airQuality.pm25}</ThemedText>
+              <Text style={styles.pollutantLabel}>PM2.5</Text>
+              <Text style={styles.pollutantValue}>{airQuality.pm25}</Text>
             </View>
             <View style={styles.pollutantItem}>
-              <ThemedText style={styles.pollutantLabel}>PM10</ThemedText>
-              <ThemedText style={styles.pollutantValue}>{airQuality.pm10}</ThemedText>
+              <Text style={styles.pollutantLabel}>PM10</Text>
+              <Text style={styles.pollutantValue}>{airQuality.pm10}</Text>
             </View>
             <View style={styles.pollutantItem}>
-              <ThemedText style={styles.pollutantLabel}>O₃</ThemedText>
-              <ThemedText style={styles.pollutantValue}>{airQuality.o3}</ThemedText>
+              <Text style={styles.pollutantLabel}>O₃</Text>
+              <Text style={styles.pollutantValue}>{airQuality.o3}</Text>
             </View>
             <View style={styles.pollutantItem}>
-              <ThemedText style={styles.pollutantLabel}>NO₂</ThemedText>
-              <ThemedText style={styles.pollutantValue}>{airQuality.no2}</ThemedText>
+              <Text style={styles.pollutantLabel}>NO₂</Text>
+              <Text style={styles.pollutantValue}>{airQuality.no2}</Text>
             </View>
           </View>
         </View>
@@ -122,18 +121,18 @@ export function AirQualityCard({ airQuality, uvIndex }: AirQualityCardProps) {
             <View style={[styles.iconContainer, { backgroundColor: getUVColor(uvIndex) }]}>
               <Text style={styles.cardIcon}>☀️</Text>
             </View>
-            <ThemedText style={styles.cardTitle}>Indeks UV</ThemedText>
+            <Text style={styles.cardTitle}>Indeks UV</Text>
           </View>
 
           <View style={styles.progressContainer}>
             <View style={[styles.progressRing, { borderColor: getUVColor(uvIndex) }]}>
-              <ThemedText style={styles.progressValue}>{uvIndex}</ThemedText>
+              <Text style={styles.progressValue}>{uvIndex}</Text>
             </View>
-            <ThemedText style={styles.progressLabel}>UV</ThemedText>
+            <Text style={styles.progressLabel}>UV</Text>
           </View>
 
           <View style={[styles.statusBadge, { backgroundColor: getUVColor(uvIndex) }]}>
-            <ThemedText style={styles.statusText}>{getUVStatus(uvIndex)}</ThemedText>
+            <Text style={styles.statusText}>{getUVStatus(uvIndex)}</Text>
           </View>
 
           <View style={styles.uvScale}>
@@ -144,24 +143,24 @@ export function AirQualityCard({ airQuality, uvIndex }: AirQualityCardProps) {
               end={{ x: 1, y: 0 }}
             />
             <View style={styles.uvLabels}>
-              <ThemedText style={styles.uvLabel}>0</ThemedText>
-              <ThemedText style={styles.uvLabel}>5</ThemedText>
-              <ThemedText style={styles.uvLabel}>11+</ThemedText>
+              <Text style={styles.uvLabel}>0</Text>
+              <Text style={styles.uvLabel}>5</Text>
+              <Text style={styles.uvLabel}>11+</Text>
             </View>
           </View>
 
           <View style={styles.recommendations}>
             <View style={styles.recommendationItem}>
               <Text style={styles.recommendationIcon}>💡</Text>
-              <ThemedText style={styles.recommendationText}>
+              <Text style={styles.recommendationText}>
                 Hindari paparan sinar matahari
-              </ThemedText>
+              </Text>
             </View>
             <View style={styles.recommendationItem}>
               <Text style={styles.recommendationIcon}>👕</Text>
-              <ThemedText style={styles.recommendationText}>
+              <Text style={styles.recommendationText}>
                 Gunakan kacamata hitam dan topi
-              </ThemedText>
+              </Text>
             </View>
           </View>
         </View>
