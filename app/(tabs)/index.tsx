@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { AirQualityCard } from '../../components/AirQualityCard';
 import { AlertsCard } from '../../components/AlertsCard';
@@ -10,7 +10,7 @@ import { TemperatureAnomalyChart } from '../../components/TemperatureAnomalyChar
 import { WeatherCard } from '../../components/WeatherCard';
 import { WeatherForecast } from '../../components/WeatherForecast';
 import { WeatherSkeleton } from '../../components/WeatherSkeleton';
-import { useLocation, LocationData } from '../../contexts/LocationContext';
+import { LocationData, useLocation } from '../../contexts/LocationContext';
 import { AlertService } from '../../services/alertService';
 import { DatabaseService } from '../../services/databaseService';
 import { HapticService } from '../../services/hapticService';
