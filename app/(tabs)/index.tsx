@@ -88,31 +88,32 @@ export default function HomeScreen() {
         ...(uvAlert ? [uvAlert] : [])
       ];
       
+      // Debug logging
+      console.log('New alerts generated:', newAlerts.length);
+      
+      // Clear old alerts and only keep today's relevant alerts
+      const today = new Date().toDateString();
       const existingAlerts = await AlertService.getActiveAlerts();
       
-      // Debug logging
-      console.log('New alerts count:', newAlerts.length);
-      console.log('Existing alerts count:', existingAlerts.length);
+      // Filter existing alerts to only keep today's alerts
+      const todayExistingAlerts = existingAlerts.filter(alert => 
+        new Date(alert.timestamp).toDateString() === today
+      );
       
-      // Only use existing alerts and only add genuinely new alerts
-      // This prevents accumulation of duplicate alerts on refresh
-      const today = new Date().toDateString();
-      const allAlerts = [...existingAlerts]; // Start with existing alerts
-      
-      // Only add new alerts if they don't already exist for today
+      // Merge with new alerts, avoiding duplicates
+      const allAlerts = [...todayExistingAlerts];
       newAlerts.forEach(newAlert => {
         const exists = allAlerts.some(existing => 
           existing.id === newAlert.id || 
           (existing.type === newAlert.type && 
-           existing.location === newAlert.location &&
-           new Date(existing.timestamp).toDateString() === today)
+           existing.location === newAlert.location)
         );
         if (!exists) {
           allAlerts.push(newAlert);
         }
       });
       
-      console.log('Final alerts count:', allAlerts.length);
+      console.log('Final alerts count (today only):', allAlerts.length);
       setAlerts(allAlerts);
 
       // Get health tips
@@ -258,12 +259,6 @@ export default function HomeScreen() {
         />
       )}
 
-        {/* Alerts Section */}
-        <AlertsCard 
-          alerts={alerts} 
-          onDismissAlert={handleDismissAlert}
-        />
-
         {/* Air Quality and UV Index */}
         {airQuality && weatherData && (
           <AirQualityCard 
@@ -271,6 +266,14 @@ export default function HomeScreen() {
             uvIndex={weatherData.uvIndex} 
           />
         )}
+
+      {/* Alerts Section - Only show if there are alerts */}
+      {alerts.length > 0 && (
+        <AlertsCard 
+          alerts={alerts} 
+          onDismissAlert={handleDismissAlert}
+        />
+      )}
 
         {/* Temperature Anomaly Chart */}
         <TemperatureAnomalyChart anomalies={temperatureAnomalies} />
@@ -306,7 +309,7 @@ export default function HomeScreen() {
       backgroundColor: '#F3F4F6',
     },
     scrollContent: {
-      paddingBottom: 100, // Extra space for floating button
-      minHeight: screenWidth * 1.5, // Responsive min height
+      paddingBottom: 80, // Reduced padding for FAB
+      minHeight: screenWidth * 1.2, // Reduced min height for better fit
     },
   });
