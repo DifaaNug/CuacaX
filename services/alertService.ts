@@ -1,22 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { AirQualityData, Alert, TemperatureAnomaly } from '../types/weather';
 
-// Configure notifications
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Only configure notifications for non-web platforms
+if (Platform.OS !== 'web') {
+  // Configure notifications
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export class AlertService {
   private static readonly ALERTS_STORAGE_KEY = 'weather_alerts';
   private static readonly PREFERENCES_STORAGE_KEY = 'notification_preferences';
 
   static async requestPermissions(): Promise<boolean> {
+    // Skip on web platform
+    if (Platform.OS === 'web') {
+      return false;
+    }
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     
@@ -239,6 +248,12 @@ export class AlertService {
   }
 
   private static async sendNotification(alert: Alert): Promise<void> {
+    // Skip notifications on web platform
+    if (Platform.OS === 'web') {
+      console.log('Notification would be sent:', alert.title);
+      return;
+    }
+
     const hasPermission = await this.requestPermissions();
     if (!hasPermission) return;
     
@@ -263,8 +278,19 @@ export class AlertService {
   private static async saveAlert(alert: Alert): Promise<void> {
     try {
       const existingAlerts = await this.getStoredAlerts();
-      const updatedAlerts = [alert, ...existingAlerts.slice(0, 49)]; // Keep only last 50 alerts
-      await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(updatedAlerts));
+      
+      // Check if this alert already exists (prevent duplicates)
+      const exists = existingAlerts.some(existing => 
+        existing.id === alert.id || 
+        (existing.type === alert.type && 
+         existing.location === alert.location &&
+         new Date(existing.timestamp).toDateString() === new Date(alert.timestamp).toDateString())
+      );
+      
+      if (!exists) {
+        const updatedAlerts = [alert, ...existingAlerts.slice(0, 49)]; // Keep only last 50 alerts
+        await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(updatedAlerts));
+      }
     } catch (error) {
       console.error('Error saving alert:', error);
     }
@@ -273,8 +299,23 @@ export class AlertService {
   private static async saveAlerts(alerts: Alert[]): Promise<void> {
     try {
       const existingAlerts = await this.getStoredAlerts();
-      const updatedAlerts = [...alerts, ...existingAlerts].slice(0, 50); // Keep only last 50 alerts
-      await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(updatedAlerts));
+      const today = new Date().toDateString();
+      
+      // Remove old alerts of the same types for today to prevent accumulation
+      const filteredExisting = existingAlerts.filter(existing => {
+        const existingDate = new Date(existing.timestamp).toDateString();
+        if (existingDate !== today) return true; // Keep alerts from other days
+        
+        // Remove if we have a new alert of the same type for same location today
+        return !alerts.some(newAlert => 
+          newAlert.type === existing.type && 
+          newAlert.location === existing.location
+        );
+      });
+      
+      // Add new alerts
+      const allAlerts = [...alerts, ...filteredExisting].slice(0, 50); // Keep only last 50 alerts
+      await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(allAlerts));
     } catch (error) {
       console.error('Error saving alerts:', error);
     }
@@ -300,9 +341,34 @@ export class AlertService {
     const alerts = await this.getStoredAlerts();
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
-    return alerts.filter(alert => 
+    // Filter for active alerts from last 24 hours only
+    const activeAlerts = alerts.filter(alert => 
       alert.isActive && alert.timestamp > twentyFourHoursAgo
     );
+    
+    // Clean up old alerts while we're at it
+    if (alerts.length !== activeAlerts.length) {
+      await this.cleanupOldAlerts();
+    }
+    
+    return activeAlerts;
+  }
+
+  private static async cleanupOldAlerts(): Promise<void> {
+    try {
+      const alerts = await this.getStoredAlerts();
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      // Keep only alerts from last 24 hours
+      const recentAlerts = alerts.filter(alert => 
+        alert.timestamp > twentyFourHoursAgo
+      );
+      
+      await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(recentAlerts));
+      console.log(`Cleaned up alerts: ${alerts.length} -> ${recentAlerts.length}`);
+    } catch (error) {
+      console.error('Error cleaning up old alerts:', error);
+    }
   }
 
   static async dismissAlert(alertId: string): Promise<void> {
@@ -314,6 +380,15 @@ export class AlertService {
       await AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(updatedAlerts));
     } catch (error) {
       console.error('Error dismissing alert:', error);
+    }
+  }
+
+  static async clearAllAlerts(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(this.ALERTS_STORAGE_KEY);
+      console.log('All alerts cleared');
+    } catch (error) {
+      console.error('Error clearing alerts:', error);
     }
   }
 
