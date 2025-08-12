@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { WeatherData } from '../types/weather';
+import { shadowPresets } from '../utils/styleUtils';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 
@@ -212,14 +213,7 @@ const styles = StyleSheet.create({
     margin: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    ...shadowPresets.card,
   },
   header: {
     flexDirection: 'row',
