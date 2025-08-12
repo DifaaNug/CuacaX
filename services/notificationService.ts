@@ -2,19 +2,28 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { AirQualityData, TemperatureAnomaly, WeatherData } from '../types/weather';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Only configure notifications for non-web platforms
+if (Platform.OS !== 'web') {
+  // Configure notification behavior
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export class NotificationService {
   static async requestPermissions(): Promise<boolean> {
+    // Skip notifications on web platform
+    if (Platform.OS === 'web') {
+      console.log('Notifications not supported on web platform');
+      return false;
+    }
+
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -56,8 +65,13 @@ export class NotificationService {
   }
 
   static async getDeviceToken(): Promise<string | null> {
+    // Skip on web platform
+    if (Platform.OS === 'web') {
+      return null;
+    }
+
     try {
-      // Get Expo push token
+      // Get Expo push token (only for native platforms)
       const token = await Notifications.getExpoPushTokenAsync();
       console.log('Using Expo push token');
       return token.data;
@@ -80,6 +94,12 @@ export class NotificationService {
   }
 
   static async scheduleDailyWeatherUpdate(hour: number = 7): Promise<void> {
+    // Skip on web platform
+    if (Platform.OS === 'web') {
+      console.log('Scheduled notifications not supported on web');
+      return;
+    }
+
     try {
       // Cancel existing scheduled notifications
       await Notifications.cancelAllScheduledNotificationsAsync();
@@ -106,6 +126,12 @@ export class NotificationService {
   }
 
   static async sendWeatherAlert(title: string, body: string, data: any = {}): Promise<void> {
+    // Skip on web platform
+    if (Platform.OS === 'web') {
+      console.log('Instant notifications not supported on web:', title);
+      return;
+    }
+
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
