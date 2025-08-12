@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+
 import { ThemedView } from '../../components/ThemedView';
 import { WeatherMap } from '../../components/WeatherMap';
 import { WeatherService } from '../../services/weatherService';
@@ -41,10 +41,10 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Peta Cuaca</ThemedText>
-        <ThemedText style={styles.subtitle}>
+        <Text style={styles.title}>Peta Cuaca</Text>
+        <Text style={styles.subtitle}>
           Jelajahi kondisi cuaca di berbagai lokasi
-        </ThemedText>
+        </Text>
       </ThemedView>
       
       <View style={styles.mapContainer}>
@@ -55,18 +55,18 @@ export default function ExploreScreen() {
         />
         {loading && (
           <ThemedView style={styles.loadingOverlay}>
-            <ThemedText>Memuat data cuaca...</ThemedText>
+            <Text>Memuat data cuaca...</Text>
           </ThemedView>
         )}
       </View>
 
       <ThemedView style={styles.infoContainer}>
-        <ThemedText type="subtitle">Cara Menggunakan</ThemedText>
-        <ThemedText style={styles.description}>
+        <Text style={styles.subtitleText}>Cara Menggunakan</Text>
+        <Text style={styles.description}>
           • Tap pada peta untuk membuka di browser atau input koordinat{'\n'}
           • Gunakan tombol &quot;Gunakan Lokasi Saat Ini&quot; untuk GPS{'\n'}
           • Peta menampilkan kondisi cuaca real-time
-        </ThemedText>
+        </Text>
       </ThemedView>
     </View>
   );
@@ -82,6 +82,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 8,
     backgroundColor: 'transparent',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
   },
   subtitle: {
     fontSize: 14,
@@ -104,6 +109,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     ...shadowPresets.small,
+  },
+  subtitleText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
   },
   description: {
     marginTop: 8,

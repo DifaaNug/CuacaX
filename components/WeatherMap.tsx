@@ -5,7 +5,6 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { WeatherData } from '../types/weather';
 import { shadowPresets } from '../utils/styleUtils';
-import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 
 interface WeatherMapProps {
@@ -138,7 +137,7 @@ export function WeatherMap({
     ]}>
       <View style={styles.header}>
         <Text style={styles.headerIcon}>🗺️</Text>
-        <ThemedText style={styles.title}>Peta Cuaca</ThemedText>
+        <Text style={styles.title}>Peta Cuaca</Text>
       </View>
 
       {/* Interactive Fallback Map for Expo Go */}
@@ -152,28 +151,28 @@ export function WeatherMap({
         activeOpacity={0.8}
       >
         <Text style={styles.mapIcon}>🗺️</Text>
-        <ThemedText style={styles.mapTitle}>Google Maps Interaktif</ThemedText>
-        <ThemedText style={styles.mapSubtitle}>
+        <Text style={styles.mapTitle}>Google Maps Interaktif</Text>
+        <Text style={styles.mapSubtitle}>
           Tap untuk membuka peta di browser atau input koordinat manual.{'\n'}
           Koordinat: {currentWeather?.coordinates?.lat.toFixed(4) || '-6.2088'}, {currentWeather?.coordinates?.lon.toFixed(4) || '106.8456'}
-        </ThemedText>
+        </Text>
         
         <View style={styles.interactiveHint}>
           <Text style={styles.tapIcon}>👆</Text>
-          <ThemedText style={styles.tapText}>Tap untuk interaksi</ThemedText>
+          <Text style={styles.tapText}>Tap untuk interaksi</Text>
         </View>
         
         {currentWeather && (
           <View style={styles.weatherInfo}>
-            <ThemedText style={styles.locationText}>
+            <Text style={styles.locationText}>
               📍 {currentWeather.location}
-            </ThemedText>
-            <ThemedText style={styles.weatherText}>
+            </Text>
+            <Text style={styles.weatherText}>
               🌡️ {currentWeather.temperature}°C
-            </ThemedText>
-            <ThemedText style={styles.weatherDesc}>
+            </Text>
+            <Text style={styles.weatherDesc}>
               {currentWeather.description}
-            </ThemedText>
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -195,9 +194,9 @@ export function WeatherMap({
         
         {userLocation && (
           <View style={styles.locationInfo}>
-            <ThemedText style={styles.coordText}>
+            <Text style={styles.coordText}>
               📍 {userLocation.coords.latitude.toFixed(4)}, {userLocation.coords.longitude.toFixed(4)}
-            </ThemedText>
+            </Text>
           </View>
         )}
       </View>

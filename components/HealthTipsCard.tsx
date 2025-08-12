@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HealthTip } from '../types/weather';
-import { ThemedText } from './ThemedText';
+
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -74,7 +74,7 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
       >
         <View style={styles.header}>
           <Text style={styles.headerIcon}>💡</Text>
-          <ThemedText style={styles.title}>Tips Kesehatan</ThemedText>
+          <Text style={styles.title}>Tips Kesehatan</Text>
         </View>
       </LinearGradient>
 
@@ -82,14 +82,14 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
         <View style={styles.emergencySection}>
           <View style={styles.emergencyHeader}>
             <Text style={styles.emergencyIcon}>⚠️</Text>
-            <ThemedText style={styles.emergencyTitle}>Peringatan Darurat</ThemedText>
+            <Text style={styles.emergencyTitle}>Peringatan Darurat</Text>
           </View>
           {emergencyTips.map((tip) => (
             <View key={tip.id} style={styles.emergencyTip}>
               <Text style={styles.tipIcon}>{tip.icon}</Text>
               <View style={styles.tipContent}>
-                <ThemedText style={styles.emergencyTipTitle}>{tip.title}</ThemedText>
-                <ThemedText style={styles.emergencyTipDescription}>{tip.description}</ThemedText>
+                <Text style={styles.emergencyTipTitle}>{tip.title}</Text>
+                <Text style={styles.emergencyTipDescription}>{tip.description}</Text>
               </View>
             </View>
           ))}
@@ -106,7 +106,7 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
           <View key={tip.id} style={[styles.tipCard, { backgroundColor: '#FFFFFF' }]}>
             <View style={styles.tipHeader}>
               <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(tip.category) }]}>
-                <ThemedText style={styles.categoryText}>{getCategoryName(tip.category)}</ThemedText>
+                <Text style={styles.categoryText}>{getCategoryName(tip.category)}</Text>
               </View>
             </View>
             
@@ -117,8 +117,8 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
             </View>
 
             <View style={styles.tipInfo}>
-              <ThemedText style={styles.tipTitle}>{tip.title}</ThemedText>
-              <ThemedText style={styles.tipDescription}>{tip.description}</ThemedText>
+              <Text style={styles.tipTitle}>{tip.title}</Text>
+              <Text style={styles.tipDescription}>{tip.description}</Text>
             </View>
           </View>
         ))}
@@ -126,9 +126,9 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
 
       <View style={styles.infoBox}>
         <Text style={styles.infoIcon}>ℹ️</Text>
-        <ThemedText style={styles.infoText}>
+        <Text style={styles.infoText}>
           Geser untuk melihat tips lainnya. Tips disesuaikan dengan kondisi cuaca saat ini.
-        </ThemedText>
+        </Text>
       </View>
     </Animated.View>
   );

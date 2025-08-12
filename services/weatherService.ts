@@ -36,7 +36,9 @@ export class WeatherService {
         coordinates: {
           lat: data.coord.lat,
           lon: data.coord.lon
-        }
+        },
+        sunrise: new Date(data.sys.sunrise * 1000),
+        sunset: new Date(data.sys.sunset * 1000)
       };
     } catch (error) {
       console.error('Error fetching current weather:', error);
@@ -92,19 +94,68 @@ export class WeatherService {
 
   static async getUVIndex(lat: number, lon: number): Promise<number> {
     try {
+      // OpenWeather UV Index API is deprecated
+      // Using OneCall API 3.0 for UV data (requires subscription)
+      // For now, we'll use current weather data and estimate UV based on conditions
       const response = await fetch(
-        `${BASE_URL}/uvi?lat=${lat}&lon=${lon}&appid=${API_KEY}`
+        `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
       );
       
       if (!response.ok) {
-        throw new Error('Failed to fetch UV index');
+        throw new Error('Failed to fetch weather data for UV estimation');
       }
       
       const data = await response.json();
-      return Math.round(data.value);
+      
+      // Estimate UV index based on weather conditions and time
+      const now = new Date();
+      const sunrise = new Date(data.sys.sunrise * 1000);
+      const sunset = new Date(data.sys.sunset * 1000);
+      const isDayTime = now >= sunrise && now <= sunset;
+      
+      let uvEstimate = 0;
+      if (isDayTime) {
+        const cloudiness = data.clouds.all;
+        const weatherMain = data.weather[0].main.toLowerCase();
+        
+        // Base UV for tropical location (Indonesia)
+        let baseUV = 8;
+        
+        // Adjust for cloud cover
+        if (cloudiness < 20) baseUV = 10; // Clear sky
+        else if (cloudiness < 50) baseUV = 8; // Partly cloudy
+        else if (cloudiness < 80) baseUV = 6; // Mostly cloudy
+        else baseUV = 3; // Overcast
+        
+        // Adjust for weather conditions
+        if (weatherMain.includes('rain') || weatherMain.includes('storm')) {
+          baseUV = Math.max(1, baseUV - 3);
+        }
+        
+        // Adjust for time of day (peak at noon)
+        const hour = now.getHours();
+        const timeMultiplier = hour >= 10 && hour <= 14 ? 1.0 : 
+                              hour >= 9 && hour <= 15 ? 0.8 : 0.6;
+        
+        uvEstimate = Math.round(baseUV * timeMultiplier);
+      }
+      
+      console.log('🌞 Estimated UV Index (OpenWeather UV API deprecated):', uvEstimate);
+      console.log('📊 UV estimation based on:', {
+        isDayTime,
+        cloudiness: data.clouds.all,
+        weatherMain: data.weather[0].main,
+        time: now.getHours()
+      });
+      
+      return uvEstimate;
     } catch (error) {
       console.error('Error fetching UV index:', error);
-      return 0;
+      // Fallback to moderate UV during day time
+      const hour = new Date().getHours();
+      const fallbackUV = hour >= 6 && hour <= 18 ? 6 : 0;
+      console.log('🌞 Fallback UV Index:', fallbackUV);
+      return fallbackUV;
     }
   }
 
@@ -123,6 +174,14 @@ export class WeatherService {
       
       const aqi = pollution.main.aqi;
       const components = pollution.components;
+      
+      console.log('🌬️ Real Air Quality from API:', {
+        aqi: aqi,
+        pm25: components.pm2_5,
+        pm10: components.pm10,
+        o3: components.o3,
+        no2: components.no2
+      });
       
       const getQualityText = (aqi: number): AirQualityData['quality'] => {
         switch (aqi) {

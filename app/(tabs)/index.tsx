@@ -1,21 +1,26 @@
 import * as Location from 'expo-location';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { AirQualityCard } from '../../components/AirQualityCard';
 import { AlertsCard } from '../../components/AlertsCard';
 import { EmergencyTipsModal } from '../../components/EmergencyTipsModal';
+import { ErrorState } from '../../components/ErrorState';
 import { FloatingActionButton } from '../../components/FloatingActionButton';
 import { HealthTipsCard } from '../../components/HealthTipsCard';
-import { LoadingAnimation } from '../../components/LoadingAnimation';
+import { LastUpdate } from '../../components/LastUpdate';
 import { TemperatureAnomalyChart } from '../../components/TemperatureAnomalyChart';
 import { WeatherCard } from '../../components/WeatherCard';
+import { WeatherForecast } from '../../components/WeatherForecast';
+import { WeatherSkeleton } from '../../components/WeatherSkeleton';
 import { useLocation } from '../../contexts/LocationContext';
 import { AlertService } from '../../services/alertService';
 import { DatabaseService } from '../../services/databaseService';
+import { HapticService } from '../../services/hapticService';
 import { HealthTipService } from '../../services/healthTipService';
 import { NotificationService } from '../../services/notificationService';
 import { WeatherService } from '../../services/weatherService';
 import { AirQualityData, HealthTip, TemperatureAnomaly, Alert as WeatherAlert, WeatherData } from '../../types/weather';
+import { spacing } from '../../utils/enhancedStyleUtils';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -28,6 +33,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [forecastData, setForecastData] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const { selectedLocation, resetToCurrentLocation } = useLocation();
 
   const getCurrentLocation = useCallback(async (): Promise<{ lat: number; lon: number } | null> => {
@@ -58,8 +66,67 @@ export default function HomeScreen() {
     }
   }, [selectedLocation]);
 
+  const generateRealForecast = useCallback(async (lat: number, lon: number) => {
+    try {
+      const forecastData = await WeatherService.getForecast(lat, lon);
+      const days = ['Hari ini', 'Besok', 'Lusa', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      
+      return forecastData.slice(0, 5).map((forecast, index) => ({
+        day: index === 0 ? 'Hari ini' : days[index] || new Date(forecast.date).toLocaleDateString('id-ID', { weekday: 'short' }),
+        icon: getWeatherIcon(forecast.icon),
+        high: forecast.temperature.max,
+        low: forecast.temperature.min,
+        description: translateWeatherDescription(forecast.description)
+      }));
+    } catch (error) {
+      console.error('Error generating real forecast:', error);
+      // Fallback to mock data if API fails
+      return [];
+    }
+  }, []);
+
+  const translateWeatherDescription = (description: string) => {
+    const translations: { [key: string]: string } = {
+      'clear sky': 'Cerah',
+      'few clouds': 'Sedikit Berawan',
+      'scattered clouds': 'Berawan',
+      'broken clouds': 'Berawan Tebal',
+      'overcast clouds': 'Mendung',
+      'shower rain': 'Hujan Ringan',
+      'rain': 'Hujan',
+      'light rain': 'Hujan Ringan',
+      'moderate rain': 'Hujan Sedang',
+      'heavy intensity rain': 'Hujan Lebat',
+      'thunderstorm': 'Badai Petir',
+      'snow': 'Salju',
+      'mist': 'Kabut',
+      'fog': 'Kabut Tebal',
+      'haze': 'Berkabut',
+      'drizzle': 'Gerimis'
+    };
+    
+    const lowerDesc = description.toLowerCase();
+    return translations[lowerDesc] || description.charAt(0).toUpperCase() + description.slice(1);
+  };
+
+  const getWeatherIcon = (iconCode: string) => {
+    const iconMap: { [key: string]: string } = {
+      '01d': '☀️', '01n': '🌙',
+      '02d': '⛅', '02n': '☁️',
+      '03d': '☁️', '03n': '☁️',
+      '04d': '☁️', '04n': '☁️',
+      '09d': '🌧️', '09n': '🌧️',
+      '10d': '🌦️', '10n': '🌧️',
+      '11d': '⛈️', '11n': '⛈️',
+      '13d': '❄️', '13n': '❄️',
+      '50d': '🌫️', '50n': '🌫️'
+    };
+    return iconMap[iconCode] || '🌤️';
+  };
+
   const loadWeatherData = useCallback(async () => {
     try {
+      setError(null); // Clear any previous errors
       const coords = await getCurrentLocation();
       if (!coords) return;
 
@@ -68,6 +135,13 @@ export default function HomeScreen() {
       const uvIndex = await WeatherService.getUVIndex(coords.lat, coords.lon);
       weather.uvIndex = uvIndex;
       setWeatherData(weather);
+
+      // Generate real forecast data
+      const forecast = await generateRealForecast(coords.lat, coords.lon);
+      setForecastData(forecast);
+
+      // Update timestamp
+      setLastUpdate(new Date());
 
       // Load air quality data
       const airQualityData = await WeatherService.getAirQuality(coords.lat, coords.lon);
@@ -135,9 +209,11 @@ export default function HomeScreen() {
 
     } catch (error) {
       console.error('Error loading weather data:', error);
-      Alert.alert('Error', 'Gagal memuat data cuaca. Periksa koneksi internet Anda.');
+      const errorMessage = error instanceof Error ? error.message : 'Gagal memuat data cuaca. Periksa koneksi internet Anda.';
+      setError(errorMessage);
+      HapticService.error(); // Error haptic feedback
     }
-  }, [getCurrentLocation]);
+  }, [getCurrentLocation, generateRealForecast]);
 
   const requestLocationPermission = useCallback(async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -202,9 +278,11 @@ export default function HomeScreen() {
   }, [selectedLocation, loadWeatherData, weatherData]);
 
   const onRefresh = useCallback(async () => {
+    HapticService.light(); // Haptic feedback on refresh
     setRefreshing(true);
     await loadWeatherData();
     setRefreshing(false);
+    HapticService.success(); // Success feedback when done
   }, [loadWeatherData]);
 
   const handleDismissAlert = async (alertId: string) => {
@@ -234,30 +312,46 @@ export default function HomeScreen() {
   };
 
   if (loading) {
-    return <LoadingAnimation />;
+    return <WeatherSkeleton />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={() => {
+      setError(null);
+      loadWeatherData();
+    }} />;
   }
 
   return (
-    <ScrollView
-      style={styles.scrollView}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      {/* Main Weather Card */}
-      {weatherData && (
-        <WeatherCard 
-          weather={weatherData} 
-          locationName={selectedLocation?.name}
-          showResetButton={!!selectedLocation}
-          onResetLocation={() => {
-            resetToCurrentLocation();
-            loadWeatherData();
-          }}
-        />
-      )}
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Last Update Indicator */}
+        <LastUpdate timestamp={lastUpdate} />
+
+        {/* Main Weather Card */}
+        {weatherData && (
+          <WeatherCard 
+            weather={weatherData} 
+            locationName={selectedLocation?.name}
+            showResetButton={!!selectedLocation}
+            onResetLocation={() => {
+              resetToCurrentLocation();
+              loadWeatherData();
+            }}
+          />
+        )}
+
+        {/* Weather Forecast */}
+        {forecastData.length > 0 && (
+          <WeatherForecast forecast={forecastData} />
+        )}
 
         {/* Air Quality and UV Index */}
         {airQuality && weatherData && (
@@ -267,13 +361,13 @@ export default function HomeScreen() {
           />
         )}
 
-      {/* Alerts Section - Only show if there are alerts */}
-      {alerts.length > 0 && (
-        <AlertsCard 
-          alerts={alerts} 
-          onDismissAlert={handleDismissAlert}
-        />
-      )}
+        {/* Alerts Section - Only show if there are alerts */}
+        {alerts.length > 0 && (
+          <AlertsCard 
+            alerts={alerts} 
+            onDismissAlert={handleDismissAlert}
+          />
+        )}
 
         {/* Temperature Anomaly Chart */}
         <TemperatureAnomalyChart anomalies={temperatureAnomalies} />
@@ -297,19 +391,21 @@ export default function HomeScreen() {
           backgroundColor="#EF4444"
         />
       </ScrollView>
-    );
+    </View>
+  );
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    scrollView: {
-      flex: 1,
-      backgroundColor: '#F3F4F6',
-    },
-    scrollContent: {
-      paddingBottom: 80, // Reduced padding for FAB
-      minHeight: screenWidth * 1.2, // Reduced min height for better fit
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xxl * 2, // Space for FAB
+    minHeight: screenWidth * 1.2,
+  },
+});

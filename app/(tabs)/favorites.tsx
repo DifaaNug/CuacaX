@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { ThemedText } from '../../components/ThemedText';
+import React, { useEffect, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { ThemedView } from '../../components/ThemedView';
-import { DatabaseService } from '../../services/databaseService';
 import { useLocation } from '../../contexts/LocationContext';
+import { DatabaseService } from '../../services/databaseService';
 
 interface FavoriteLocation {
   id: string;
@@ -108,7 +108,7 @@ export default function FavoritesScreen() {
   const renderFavoriteItem = ({ item }: { item: FavoriteLocation }) => (
     <View style={styles.favoriteItem}>
       <View style={styles.favoriteInfo}>
-        <ThemedText style={styles.favoriteName}>{item.name}</ThemedText>
+        <Text style={styles.favoriteName}>{item.name}</Text>
         <Text style={styles.favoriteDetails}>
           {item.state && `${item.state}, `}{item.country}
         </Text>
@@ -159,7 +159,7 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <ThemedView style={styles.header}>
-        <ThemedText type="title">Lokasi Favorit</ThemedText>
+        <Text style={styles.title}>Lokasi Favorit</Text>
         <TouchableOpacity style={styles.addButton} onPress={addCurrentLocationToFavorites}>
           <Text style={styles.addButtonText}>+ Tambah Lokasi Saat Ini</Text>
         </TouchableOpacity>
@@ -168,7 +168,7 @@ export default function FavoritesScreen() {
       {favorites.length === 0 ? (
         <ThemedView style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📍</Text>
-          <ThemedText style={styles.emptyTitle}>Belum Ada Lokasi Favorit</ThemedText>
+          <Text style={styles.emptyTitle}>Belum Ada Lokasi Favorit</Text>
           <Text style={styles.emptyDescription}>
             Tambahkan lokasi favorit Anda untuk akses cepat ke informasi cuaca
           </Text>
@@ -201,6 +201,12 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
   },
   addButton: {
     backgroundColor: '#3B82F6',

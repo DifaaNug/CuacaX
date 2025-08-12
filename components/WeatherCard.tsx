@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { HapticService } from '../services/hapticService';
 import { WeatherData } from '../types/weather';
-import { ThemedText } from './ThemedText';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -53,6 +53,30 @@ export function WeatherCard({ weather, style, locationName, showResetButton, onR
     return iconMap[iconCode] || '🌤️';
   };
 
+  const translateWeatherDescription = (description: string) => {
+    const translations: { [key: string]: string } = {
+      'clear sky': 'Cerah',
+      'few clouds': 'Sedikit Berawan',
+      'scattered clouds': 'Berawan',
+      'broken clouds': 'Berawan Tebal',
+      'overcast clouds': 'Mendung',
+      'shower rain': 'Hujan Ringan',
+      'rain': 'Hujan',
+      'light rain': 'Hujan Ringan',
+      'moderate rain': 'Hujan Sedang',
+      'heavy intensity rain': 'Hujan Lebat',
+      'thunderstorm': 'Badai Petir',
+      'snow': 'Salju',
+      'mist': 'Kabut',
+      'fog': 'Kabut Tebal',
+      'haze': 'Berkabut',
+      'drizzle': 'Gerimis'
+    };
+    
+    const lowerDesc = description.toLowerCase();
+    return translations[lowerDesc] || description.charAt(0).toUpperCase() + description.slice(1);
+  };
+
   return (
     <Animated.View
       style={[
@@ -77,26 +101,29 @@ export function WeatherCard({ weather, style, locationName, showResetButton, onR
             <View style={styles.locationContainer}>
               <View style={styles.locationBadge}>
                 <Text style={styles.locationIcon}>📍</Text>
-                <ThemedText style={styles.location}>
+                <Text style={styles.location}>
                   {locationName || weather.location}
-            </ThemedText>
+            </Text>
           </View>
           {showResetButton && onResetLocation && (
             <TouchableOpacity 
               style={styles.resetButton}
-              onPress={onResetLocation}
+              onPress={() => {
+                HapticService.medium();
+                onResetLocation();
+              }}
             >
               <Text style={styles.resetButtonText}>📍 GPS</Text>
             </TouchableOpacity>
           )}
         </View>
-        <ThemedText style={styles.date}>
+        <Text style={styles.date}>
           {new Date().toLocaleDateString('id-ID', { 
             weekday: 'long', 
             day: 'numeric', 
             month: 'long' 
           })}
-        </ThemedText>
+        </Text>
       </View>
     </LinearGradient>
 
@@ -106,17 +133,17 @@ export function WeatherCard({ weather, style, locationName, showResetButton, onR
         {getWeatherIcon(weather.icon)}
       </Text>
       <View style={styles.temperatureContainer}>
-        <ThemedText style={styles.temperature}>
+        <Text style={styles.temperature}>
           {weather.temperature}°
-        </ThemedText>
+        </Text>
       </View>
       <View style={styles.descriptionContainer}>
-        <ThemedText style={styles.description}>
-          {weather.description.charAt(0).toUpperCase() + weather.description.slice(1)}
-        </ThemedText>
-        <ThemedText style={styles.feelsLike}>
+        <Text style={styles.description}>
+          {translateWeatherDescription(weather.description)}
+        </Text>
+        <Text style={styles.feelsLike}>
           Terasa seperti {weather.feelsLike}°
-        </ThemedText>
+        </Text>
       </View>
     </View>
 
@@ -126,19 +153,19 @@ export function WeatherCard({ weather, style, locationName, showResetButton, onR
             <View style={styles.detailItem}>
               <Text style={styles.detailIcon}>💨</Text>
               <View style={styles.detailTextContainer}>
-                <ThemedText style={styles.detailValue}>{weather.windSpeed}</ThemedText>
-                <ThemedText style={styles.detailUnit}>km/h</ThemedText>
+                <Text style={styles.detailValue}>{weather.windSpeed}</Text>
+                <Text style={styles.detailUnit}>km/h</Text>
               </View>
-              <ThemedText style={styles.detailLabel}>Angin</ThemedText>
+              <Text style={styles.detailLabel}>Angin</Text>
             </View>
 
             <View style={styles.detailItem}>
               <Text style={styles.detailIcon}>💧</Text>
               <View style={styles.detailTextContainer}>
-                <ThemedText style={styles.detailValue}>{weather.humidity}</ThemedText>
-                <ThemedText style={styles.detailUnit}>%</ThemedText>
+                <Text style={styles.detailValue}>{weather.humidity}</Text>
+                <Text style={styles.detailUnit}>%</Text>
               </View>
-              <ThemedText style={styles.detailLabel}>Kelembaban</ThemedText>
+              <Text style={styles.detailLabel}>Kelembaban</Text>
             </View>
           </View>
 
@@ -146,19 +173,49 @@ export function WeatherCard({ weather, style, locationName, showResetButton, onR
             <View style={styles.detailItem}>
               <Text style={styles.detailIcon}>👁️</Text>
               <View style={styles.detailTextContainer}>
-                <ThemedText style={styles.detailValue}>{weather.visibility}</ThemedText>
-                <ThemedText style={styles.detailUnit}>km</ThemedText>
+                <Text style={styles.detailValue}>{weather.visibility}</Text>
+                <Text style={styles.detailUnit}>km</Text>
               </View>
-              <ThemedText style={styles.detailLabel}>Jarak Pandang</ThemedText>
+              <Text style={styles.detailLabel}>Jarak Pandang</Text>
             </View>
 
             <View style={styles.detailItem}>
               <Text style={styles.detailIcon}>🌡️</Text>
               <View style={styles.detailTextContainer}>
-                <ThemedText style={styles.detailValue}>{weather.pressure}</ThemedText>
-                <ThemedText style={styles.detailUnit}>hPa</ThemedText>
+                <Text style={styles.detailValue}>{weather.pressure}</Text>
+                <Text style={styles.detailUnit}>hPa</Text>
               </View>
-              <ThemedText style={styles.detailLabel}>Tekanan</ThemedText>
+              <Text style={styles.detailLabel}>Tekanan</Text>
+            </View>
+          </View>
+
+          <View style={styles.detailRow}>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailIcon}>☀️</Text>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailValue}>
+                  {weather.sunrise ? weather.sunrise.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  }) : '--:--'}
+                </Text>
+                <Text style={styles.detailUnit}></Text>
+              </View>
+              <Text style={styles.detailLabel}>Matahari Terbit</Text>
+            </View>
+
+            <View style={styles.detailItem}>
+              <Text style={styles.detailIcon}>🌙</Text>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailValue}>
+                  {weather.sunset ? weather.sunset.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  }) : '--:--'}
+                </Text>
+                <Text style={styles.detailUnit}></Text>
+              </View>
+              <Text style={styles.detailLabel}>Matahari Terbenam</Text>
             </View>
           </View>
         </View>
@@ -175,7 +232,7 @@ const styles = StyleSheet.create({
     margin: 12,
     overflow: 'hidden',
     position: 'relative',
-    minHeight: 420,
+    minHeight: 480, // Increased height for sunrise/sunset
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

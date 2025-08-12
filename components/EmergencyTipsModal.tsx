@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { HealthTip } from '../types/weather';
-import { ThemedText } from './ThemedText';
+
 
 interface EmergencyTipsModalProps {
   visible: boolean;
@@ -57,7 +57,7 @@ export const EmergencyTipsModal: React.FC<EmergencyTipsModalProps> = ({
             <View style={styles.headerIcon}>
               <Text style={styles.headerIconText}>🚨</Text>
             </View>
-            <ThemedText style={styles.title}>Tips Darurat</ThemedText>
+            <Text style={styles.title}>Tips Darurat</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
@@ -77,15 +77,15 @@ export const EmergencyTipsModal: React.FC<EmergencyTipsModalProps> = ({
                     <Text style={styles.tipIcon}>
                       {getEmergencyIcon(tip.type || 'general')}
                     </Text>
-                    <ThemedText style={styles.tipTitle}>{tip.title}</ThemedText>
+                    <Text style={styles.tipTitle}>{tip.title}</Text>
                   </View>
-                  <ThemedText style={styles.tipDescription}>
+                  <Text style={styles.tipDescription}>
                     {tip.description}
-                  </ThemedText>
+                  </Text>
                   {tip.action && (
                     <View style={styles.actionContainer}>
                       <Text style={styles.actionIcon}>👆</Text>
-                      <ThemedText style={styles.actionText}>{tip.action}</ThemedText>
+                      <Text style={styles.actionText}>{tip.action}</Text>
                     </View>
                   )}
                 </View>
@@ -93,18 +93,18 @@ export const EmergencyTipsModal: React.FC<EmergencyTipsModalProps> = ({
             ) : (
               <View style={styles.noTipsContainer}>
                 <Text style={styles.noTipsIcon}>✅</Text>
-                <ThemedText style={styles.noTipsText}>
+                <Text style={styles.noTipsText}>
                   Tidak ada tips darurat saat ini. Kondisi cuaca relatif aman.
-                </ThemedText>
+                </Text>
               </View>
             )}
           </ScrollView>
 
           <TouchableOpacity style={styles.emergencyButton} onPress={onClose}>
             <Text style={styles.emergencyButtonIcon}>📞</Text>
-            <ThemedText style={styles.emergencyButtonText}>
+            <Text style={styles.emergencyButtonText}>
               Hubungi Layanan Darurat: 112
-            </ThemedText>
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

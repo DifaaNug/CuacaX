@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { HapticService } from '../services/hapticService';
 
 interface FloatingActionButtonProps {
   onPress: () => void;
@@ -69,7 +70,10 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
             borderRadius: size / 2,
           },
         ]}
-        onPress={onPress}
+        onPress={() => {
+          HapticService.heavy();
+          onPress();
+        }}
         activeOpacity={0.8}
       >
         <Text style={[styles.icon, { fontSize: size * 0.4 }]}>{icon}</Text>

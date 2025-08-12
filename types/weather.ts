@@ -14,6 +14,8 @@ export interface WeatherData {
     lat: number;
     lon: number;
   };
+  sunrise?: Date;
+  sunset?: Date;
 }
 
 export interface ForecastData {

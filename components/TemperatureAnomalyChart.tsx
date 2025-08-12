@@ -3,7 +3,6 @@ import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { TemperatureAnomaly } from '../types/weather';
-import { ThemedText } from './ThemedText';
 
 interface TemperatureAnomalyChartProps {
   anomalies: TemperatureAnomaly[];
@@ -29,13 +28,14 @@ export function TemperatureAnomalyChart({
         >
           <View style={styles.header}>
             <Text style={styles.headerIcon}>📊</Text>
-            <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
+            <Text style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</Text>
           </View>
         </LinearGradient>
         
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataIcon}>📈</Text>
-          <ThemedText style={styles.noDataText}>Tidak ada data anomali suhu</ThemedText>
+          <Text style={styles.noDataText}>Memuat data anomali suhu...</Text>
+          <Text style={styles.noDataSubtext}>Grafik akan menampilkan perbandingan suhu aktual dengan suhu normal</Text>
         </View>
       </View>
     );
@@ -97,7 +97,7 @@ export function TemperatureAnomalyChart({
       >
         <View style={styles.header}>
           <Text style={styles.headerIcon}>📊</Text>
-          <ThemedText style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</ThemedText>
+          <Text style={styles.title}>Grafik Anomali Suhu (7 Hari Terakhir)</Text>
         </View>
       </LinearGradient>
 
@@ -121,11 +121,11 @@ export function TemperatureAnomalyChart({
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
-          <ThemedText style={styles.legendText}>Suhu Aktual</ThemedText>
+          <Text style={styles.legendText}>Suhu Aktual</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#9CA3AF' }]} />
-          <ThemedText style={styles.legendText}>Suhu Normal</ThemedText>
+          <Text style={styles.legendText}>Suhu Normal</Text>
         </View>
       </View>
 
@@ -133,7 +133,7 @@ export function TemperatureAnomalyChart({
         <View style={styles.anomalySection}>
           <View style={styles.anomalyHeader}>
             <Text style={styles.anomalyIcon}>⚠️</Text>
-            <ThemedText style={styles.anomalyTitle}>Anomali Terdeteksi</ThemedText>
+            <Text style={styles.anomalyTitle}>Anomali Terdeteksi</Text>
           </View>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -141,20 +141,20 @@ export function TemperatureAnomalyChart({
               {detectedAnomalies.map((anomaly, index) => (
                 <View key={index} style={[styles.anomalyCard, { backgroundColor: '#FFFFFF' }]}>
                   <View style={styles.anomalyCardHeader}>
-                    <ThemedText style={styles.anomalyDate}>
+                    <Text style={styles.anomalyDate}>
                       {new Date(anomaly.date).toLocaleDateString('id-ID', { 
                         day: 'numeric', 
                         month: 'short' 
                       })}
-                    </ThemedText>
+                    </Text>
                     <View style={[styles.severityBadge, { 
                       backgroundColor: anomaly.severity === 'high' ? '#EF4444' : 
                                     anomaly.severity === 'medium' ? '#F59E0B' : '#10B981'
                     }]}>
-                      <ThemedText style={styles.severityText}>
+                      <Text style={styles.severityText}>
                         {anomaly.severity === 'high' ? 'TINGGI' : 
                          anomaly.severity === 'medium' ? 'SEDANG' : 'RENDAH'}
-                      </ThemedText>
+                      </Text>
                     </View>
                   </View>
                   
@@ -162,15 +162,15 @@ export function TemperatureAnomalyChart({
                     <Text style={styles.anomalyTypeIcon}>
                       {anomaly.type === 'cold_wave' ? '❄️' : '🔥'}
                     </Text>
-                    <ThemedText style={styles.anomalyType}>
+                    <Text style={styles.anomalyType}>
                       {anomaly.type === 'cold_wave' ? 'Gelombang Dingin' : 'Gelombang Panas'}
-                    </ThemedText>
-                    <ThemedText style={[styles.anomalyTemp, { 
+                    </Text>
+                    <Text style={[styles.anomalyTemp, { 
                       color: anomaly.type === 'cold_wave' ? '#3B82F6' : '#EF4444' 
                     }]}>
                       {anomaly.type === 'cold_wave' ? '' : '+'}{Math.abs(anomaly.anomaly).toFixed(1)}°C
-                    </ThemedText>
-                    <ThemedText style={styles.anomalyDesc}>dari normal</ThemedText>
+                    </Text>
+                    <Text style={styles.anomalyDesc}>dari normal</Text>
                   </View>
                 </View>
               ))}
@@ -264,6 +264,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  noDataSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
   },
   anomalySection: {
     marginHorizontal: 20,

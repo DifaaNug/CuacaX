@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+
 import { ThemedView } from '../../components/ThemedView';
 import { DatabaseService } from '../../services/databaseService';
 import { NotificationService } from '../../services/notificationService';
@@ -116,15 +116,15 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container}>
       <ThemedView style={styles.section}>
-        <ThemedText type="title">Pengaturan</ThemedText>
+        <Text style={styles.title}>Pengaturan</Text>
       </ThemedView>
 
       {/* Unit Settings */}
       <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">Unit Pengukuran</ThemedText>
+        <Text style={styles.subtitle}>Unit Pengukuran</Text>
         
         <View style={styles.settingItem}>
-          <ThemedText style={styles.settingLabel}>Suhu</ThemedText>
+          <Text style={styles.settingLabel}>Suhu</Text>
           <View style={styles.unitButtons}>
             <TouchableOpacity
               style={[
@@ -154,7 +154,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.settingItem}>
-          <ThemedText style={styles.settingLabel}>Kecepatan Angin</ThemedText>
+          <Text style={styles.settingLabel}>Kecepatan Angin</Text>
           <View style={styles.unitButtons}>
             {['kmh', 'mph', 'ms'].map(unit => (
               <TouchableOpacity
@@ -177,10 +177,10 @@ export default function SettingsScreen() {
 
       {/* Notification Settings */}
       <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">Notifikasi</ThemedText>
+        <Text style={styles.subtitle}>Notifikasi</Text>
         
         <View style={styles.settingItem}>
-          <ThemedText style={styles.settingLabel}>Aktifkan Peringatan</ThemedText>
+          <Text style={styles.settingLabel}>Aktifkan Peringatan</Text>
           <Switch
             value={preferences.alertsEnabled}
             onValueChange={toggleAlerts}
@@ -192,7 +192,7 @@ export default function SettingsScreen() {
         {preferences.alertsEnabled && (
           <>
             <View style={styles.settingItem}>
-              <ThemedText style={styles.settingLabel}>Gelombang Panas</ThemedText>
+              <Text style={styles.settingLabel}>Gelombang Panas</Text>
               <Switch
                 value={preferences.notificationSettings.heatWave}
                 onValueChange={() => toggleNotification('heatWave')}
@@ -202,7 +202,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.settingItem}>
-              <ThemedText style={styles.settingLabel}>Gelombang Dingin</ThemedText>
+              <Text style={styles.settingLabel}>Gelombang Dingin</Text>
               <Switch
                 value={preferences.notificationSettings.coldWave}
                 onValueChange={() => toggleNotification('coldWave')}
@@ -212,7 +212,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.settingItem}>
-              <ThemedText style={styles.settingLabel}>Kualitas Udara</ThemedText>
+              <Text style={styles.settingLabel}>Kualitas Udara</Text>
               <Switch
                 value={preferences.notificationSettings.airQuality}
                 onValueChange={() => toggleNotification('airQuality')}
@@ -222,7 +222,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.settingItem}>
-              <ThemedText style={styles.settingLabel}>Indeks UV</ThemedText>
+              <Text style={styles.settingLabel}>Indeks UV</Text>
               <Switch
                 value={preferences.notificationSettings.uvIndex}
                 onValueChange={() => toggleNotification('uvIndex')}
@@ -232,7 +232,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.settingItem}>
-              <ThemedText style={styles.settingLabel}>Cuaca Ekstrem</ThemedText>
+              <Text style={styles.settingLabel}>Cuaca Ekstrem</Text>
               <Switch
                 value={preferences.notificationSettings.severeWeather}
                 onValueChange={() => toggleNotification('severeWeather')}
@@ -246,7 +246,7 @@ export default function SettingsScreen() {
 
       {/* Data Management */}
       <ThemedView style={styles.section}>
-        <ThemedText type="subtitle">Manajemen Data</ThemedText>
+        <Text style={styles.subtitle}>Manajemen Data</Text>
         
         <TouchableOpacity style={styles.dangerButton} onPress={clearAllData}>
           <Text style={styles.dangerButtonText}>Hapus Semua Data</Text>
@@ -271,6 +271,18 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
   },
   settingItem: {
     flexDirection: 'row',

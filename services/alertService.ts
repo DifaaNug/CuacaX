@@ -104,17 +104,30 @@ export class AlertService {
       return existingAirAlert; // Return existing alert instead of creating new one
     }
     
+    const getQualityText = (aqi: number) => {
+      if (aqi >= 5) return 'sangat tidak sehat';
+      if (aqi >= 4) return 'tidak sehat';
+      if (aqi >= 3) return 'tidak sehat untuk kelompok sensitif';
+      return 'sedang';
+    };
+    
     const alertId = `air_quality_${Date.now()}_${location.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const qualityText = getQualityText(airQuality.aqi);
     const alert: Alert = {
       id: alertId,
       type: 'poor_air_quality',
-      title: `Poor Air Quality Alert - ${location}`,
-      message: `Air quality is ${airQuality.quality.toLowerCase()} (AQI: ${airQuality.aqi}). ${airQuality.recommendations[0]}`,
+      title: `Peringatan Kualitas Udara - ${location}`,
+      message: `Kualitas udara saat ini ${qualityText} (AQI: ${airQuality.aqi}). Disarankan untuk membatasi aktivitas di luar ruangan.`,
       severity: airQuality.aqi >= 4 ? 'high' : 'medium',
       timestamp: new Date(),
       location,
       isActive: true,
-      recommendations: airQuality.recommendations
+      recommendations: [
+        'Batasi aktivitas di luar ruangan',
+        'Gunakan masker saat keluar rumah',
+        'Tutup jendela dan gunakan air purifier',
+        'Perbanyak minum air putih'
+      ]
     };
     
     await this.sendNotification(alert);
@@ -142,21 +155,29 @@ export class AlertService {
       return existingUVAlert; // Return existing alert instead of creating new one
     }
     
+    const getUVLevel = (uv: number) => {
+      if (uv >= 11) return 'ekstrem';
+      if (uv >= 8) return 'sangat tinggi';
+      if (uv >= 6) return 'tinggi';
+      return 'sedang';
+    };
+    
     const alertId = `uv_index_${Date.now()}_${location.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const uvLevel = getUVLevel(uvIndex);
     const alert: Alert = {
       id: alertId,
       type: 'high_uv',
-      title: `High UV Index Alert - ${location}`,
-      message: `UV Index is very high (${uvIndex}). Limit sun exposure and use sunscreen.`,
+      title: `Peringatan Indeks UV - ${location}`,
+      message: `Indeks UV saat ini ${uvLevel} (${uvIndex}). Hindari paparan sinar matahari langsung dan gunakan tabir surya.`,
       severity: uvIndex >= 11 ? 'extreme' : 'high',
       timestamp: new Date(),
       location,
       isActive: true,
       recommendations: [
-        'Apply SPF 30+ sunscreen',
-        'Wear protective clothing',
-        'Seek shade during peak hours (10 AM - 4 PM)',
-        'Wear sunglasses and a wide-brimmed hat'
+        'Gunakan tabir surya SPF 30+',
+        'Kenakan pakaian pelindung',
+        'Cari tempat teduh saat jam puncak (10.00 - 16.00)',
+        'Gunakan kacamata hitam dan topi lebar'
       ]
     };
     
@@ -167,37 +188,37 @@ export class AlertService {
 
   private static createHeatWaveAlert(anomaly: TemperatureAnomaly, location: string): Alert {
     const severityMessages = {
-      medium: 'Take precautions to stay cool.',
-      high: 'Heat wave conditions detected. Stay hydrated and avoid prolonged sun exposure.',
-      extreme: 'Extreme heat wave! Stay indoors and seek air conditioning.'
+      medium: 'Ambil tindakan pencegahan untuk tetap sejuk.',
+      high: 'Kondisi gelombang panas terdeteksi. Tetap terhidrasi dan hindari paparan sinar matahari berkepanjangan.',
+      extreme: 'Gelombang panas ekstrem! Tetap di dalam ruangan dan cari AC.'
     };
     
     const recommendations = {
       medium: [
-        'Drink plenty of water',
-        'Wear light-colored, loose clothing',
-        'Limit outdoor activities during peak hours'
+        'Minum banyak air putih',
+        'Kenakan pakaian berwarna terang dan longgar',
+        'Batasi aktivitas di luar ruangan saat jam puncak'
       ],
       high: [
-        'Stay hydrated with water and electrolytes',
-        'Remain indoors during peak heat hours',
-        'Wear protective clothing and sunscreen',
-        'Check on elderly and vulnerable individuals'
+        'Tetap terhidrasi dengan air dan elektrolit',
+        'Tetap di dalam ruangan saat jam panas puncak',
+        'Kenakan pakaian pelindung dan tabir surya',
+        'Perhatikan kondisi lansia dan orang rentan'
       ],
       extreme: [
-        'Stay indoors with air conditioning',
-        'Drink water regularly, even if not thirsty',
-        'Avoid alcohol and caffeine',
-        'Never leave anyone in a parked vehicle',
-        'Seek immediate medical attention for heat exhaustion symptoms'
+        'Tetap di dalam ruangan ber-AC',
+        'Minum air secara teratur, meski tidak haus',
+        'Hindari alkohol dan kafein',
+        'Jangan tinggalkan siapa pun di kendaraan yang diparkir',
+        'Segera cari bantuan medis jika ada gejala kelelahan panas'
       ]
     };
     
     return {
       id: `heat_wave_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: 'heat_wave',
-      title: `Heat Wave Alert - ${location}`,
-      message: `Temperature ${anomaly.temperature}°C (${anomaly.anomaly > 0 ? '+' : ''}${anomaly.anomaly}°C above normal). ${severityMessages[anomaly.severity as keyof typeof severityMessages]}`,
+      title: `Peringatan Gelombang Panas - ${location}`,
+      message: `Suhu ${anomaly.temperature}°C (${anomaly.anomaly > 0 ? '+' : ''}${anomaly.anomaly.toFixed(1)}°C di atas normal). ${severityMessages[anomaly.severity as keyof typeof severityMessages]}`,
       severity: anomaly.severity,
       timestamp: new Date(),
       location,
@@ -208,37 +229,37 @@ export class AlertService {
 
   private static createColdWaveAlert(anomaly: TemperatureAnomaly, location: string): Alert {
     const severityMessages = {
-      medium: 'Dress warmly and be cautious of cold weather.',
-      high: 'Cold wave conditions detected. Take extra precautions against cold.',
-      extreme: 'Extreme cold wave! Avoid prolonged outdoor exposure.'
+      medium: 'Berpakaian hangat dan waspada terhadap cuaca dingin.',
+      high: 'Kondisi gelombang dingin terdeteksi. Ambil tindakan pencegahan ekstra terhadap dingin.',
+      extreme: 'Gelombang dingin ekstrem! Hindari paparan luar ruangan yang berkepanjangan.'
     };
     
     const recommendations = {
       medium: [
-        'Dress in layers',
-        'Wear warm clothing and accessories',
-        'Limit time outdoors'
+        'Berpakaian berlapis',
+        'Kenakan pakaian hangat dan aksesoris',
+        'Batasi waktu di luar ruangan'
       ],
       high: [
-        'Dress in multiple layers',
-        'Cover exposed skin',
-        'Keep homes adequately heated',
-        'Check on elderly and vulnerable individuals'
+        'Berpakaian berlapis-lapis',
+        'Tutupi kulit yang terbuka',
+        'Jaga rumah agar cukup hangat',
+        'Perhatikan kondisi lansia dan orang rentan'
       ],
       extreme: [
-        'Avoid unnecessary outdoor exposure',
-        'Dress in multiple warm layers',
-        'Protect extremities from frostbite',
-        'Ensure adequate home heating',
-        'Seek immediate medical attention for hypothermia symptoms'
+        'Hindari paparan luar ruangan yang tidak perlu',
+        'Berpakaian berlapis hangat',
+        'Lindungi ujung-ujung tubuh dari radang dingin',
+        'Pastikan pemanasan rumah yang memadai',
+        'Segera cari bantuan medis jika ada gejala hipotermia'
       ]
     };
     
     return {
       id: `cold_wave_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: 'cold_wave',
-      title: `Cold Wave Alert - ${location}`,
-      message: `Temperature ${anomaly.temperature}°C (${anomaly.anomaly}°C below normal). ${severityMessages[anomaly.severity as keyof typeof severityMessages]}`,
+      title: `Peringatan Gelombang Dingin - ${location}`,
+      message: `Suhu ${anomaly.temperature}°C (${anomaly.anomaly.toFixed(1)}°C di bawah normal). ${severityMessages[anomaly.severity as keyof typeof severityMessages]}`,
       severity: anomaly.severity,
       timestamp: new Date(),
       location,
