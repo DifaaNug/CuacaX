@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { AirQualityData, TemperatureAnomaly, WeatherData } from '../types/weather';
@@ -87,10 +88,45 @@ export class NotificationService {
       if (token) {
         console.log('Device token saved locally:', token);
         // Could save to AsyncStorage or Firebase if needed
+        await AsyncStorage.setItem('expo_push_token', token);
       }
     } catch (error) {
-      console.error('Error saving token to database:', error);
+      console.error('Error saving device token:', error);
     }
+  }
+
+  static setupNotificationListeners(): void {
+    // Skip on web platform
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    // Listen for received notifications
+    Notifications.addNotificationReceivedListener((notification) => {
+      console.log('Notification received:', notification);
+      
+      // If it's a daily weather notification, schedule the next one
+      if (notification.request.content.data?.type === 'daily_weather') {
+        console.log('Daily weather notification received, scheduling next one...');
+        this.scheduleDailyWeatherUpdate(7); // Re-schedule for tomorrow
+      }
+    });
+
+    // Listen for notification responses (when user taps notification)
+    Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log('Notification response:', response);
+      
+      // Handle notification tap actions here if needed
+      const notificationType = response.notification.request.content.data?.type;
+      
+      if (notificationType === 'daily_weather') {
+        console.log('User tapped daily weather notification');
+        // Could navigate to weather screen
+      } else if (notificationType === 'weather_alert') {
+        console.log('User tapped weather alert notification');
+        // Could navigate to alerts screen
+      }
+    });
   }
 
   static async scheduleDailyWeatherUpdate(hour: number = 7): Promise<void> {
@@ -104,24 +140,54 @@ export class NotificationService {
       // Cancel existing scheduled notifications
       await Notifications.cancelAllScheduledNotificationsAsync();
       
-      // Schedule daily weather update
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Daily Weather Update',
-          body: 'Check today\'s weather forecast and air quality!',
-          data: { type: 'daily_weather' },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-          hour,
-          minute: 0,
-          repeats: true,
-        },
-      });
+      // Calculate time until next notification
+      const now = new Date();
+      const scheduledTime = new Date();
+      scheduledTime.setHours(hour, 0, 0, 0);
       
-      console.log(`Daily weather notification scheduled for ${hour}:00`);
+      // If the time has passed today, schedule for tomorrow
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+      
+      const timeDifference = scheduledTime.getTime() - now.getTime();
+      
+      if (Platform.OS === 'android') {
+        // For Android, use TIME_INTERVAL trigger
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Cuaca Harian 🌤️',
+            body: 'Periksa prakiraan cuaca dan kualitas udara hari ini!',
+            data: { type: 'daily_weather' },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: Math.max(Math.floor(timeDifference / 1000), 60), // At least 60 seconds
+            repeats: false, // We'll reschedule manually
+          },
+        });
+        
+        console.log(`Daily weather notification scheduled for Android in ${Math.floor(timeDifference / 1000 / 60)} minutes`);
+      } else {
+        // For iOS, use DATE trigger
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Cuaca Harian 🌤️',
+            body: 'Periksa prakiraan cuaca dan kualitas udara hari ini!',
+            data: { type: 'daily_weather' },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: scheduledTime,
+          },
+        });
+        
+        console.log(`Daily weather notification scheduled for iOS at ${scheduledTime.toLocaleString()}`);
+      }
+      
     } catch (error) {
       console.error('Error scheduling daily weather update:', error);
+      throw error;
     }
   }
 
@@ -154,6 +220,18 @@ export class NotificationService {
     anomalies: TemperatureAnomaly[]
   ): Promise<void> {
     try {
+      // First check if user has enabled alerts
+      const prefsJson = await AsyncStorage.getItem('userPreferences');
+      if (prefsJson) {
+        const userPrefs = JSON.parse(prefsJson);
+        if (userPrefs.alertsEnabled === false) {
+          console.log('🚫 Weather alerts disabled by user preferences - skipping all notifications');
+          return;
+        }
+      }
+      
+      console.log('📢 Checking weather alerts with user preferences enabled');
+
       // Check for extreme weather conditions
       if (weather.temperature > 35) {
         await this.sendWeatherAlert(

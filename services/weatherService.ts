@@ -278,12 +278,12 @@ export class WeatherService {
       let severity: TemperatureAnomaly['severity'] = 'low';
       
       // More realistic thresholds for Indonesian climate
-      if (anomaly > 7) {
+      if (anomaly > 3) {
         type = 'heat_wave';
-        severity = anomaly > 12 ? 'extreme' : anomaly > 9 ? 'high' : 'medium';
-      } else if (anomaly < -7) {
+        severity = anomaly > 8 ? 'extreme' : anomaly > 5 ? 'high' : 'medium';
+      } else if (anomaly < -3) {
         type = 'cold_wave';
-        severity = anomaly < -12 ? 'extreme' : anomaly < -9 ? 'high' : 'medium';
+        severity = anomaly < -8 ? 'extreme' : anomaly < -5 ? 'high' : 'medium';
       }
       
       anomalies.push({
