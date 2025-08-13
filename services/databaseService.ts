@@ -70,7 +70,7 @@ export class DatabaseService {
     state?: string;
   }) {
     try {
-      // Save to AsyncStorage
+      // Save to AsyncStorage first
       const existing = await this.getFavoriteLocations();
       const newLocation = {
         id: Date.now().toString(),
@@ -81,6 +81,21 @@ export class DatabaseService {
       
       await AsyncStorage.setItem('favoriteLocations', JSON.stringify(updated));
       console.log('Favorite location saved to AsyncStorage');
+      
+      // Try to sync to Firebase
+      if (this.isFirebaseAvailable()) {
+        try {
+          const userId = this.getCurrentUserId();
+          await setDoc(doc(db!, 'favoriteLocations', `${userId}_${newLocation.id}`), {
+            userId: userId,
+            ...newLocation,
+            updatedAt: serverTimestamp(),
+          });
+          console.log('Favorite location synced to Firebase');
+        } catch (firebaseError) {
+          console.log('Firebase save failed, AsyncStorage backup used:', firebaseError);
+        }
+      }
       
       return { id: newLocation.id };
     } catch (error) {
@@ -109,6 +124,18 @@ export class DatabaseService {
       
       await AsyncStorage.setItem('favoriteLocations', JSON.stringify(updated));
       console.log('Favorite location deleted from AsyncStorage');
+      
+      // Try to delete from Firebase
+      if (this.isFirebaseAvailable()) {
+        try {
+          const userId = this.getCurrentUserId();
+          const { deleteDoc } = await import('firebase/firestore');
+          await deleteDoc(doc(db!, 'favoriteLocations', `${userId}_${locationId}`));
+          console.log('Favorite location deleted from Firebase');
+        } catch (firebaseError) {
+          console.log('Firebase delete failed, but AsyncStorage updated:', firebaseError);
+        }
+      }
     } catch (error) {
       console.error('Error deleting favorite location:', error);
       throw error;
@@ -122,6 +149,43 @@ export class DatabaseService {
       // For now just log to console, Firebase can be added later
     } catch (error) {
       console.error('Error logging app usage:', error);
+    }
+  }
+
+  // Sync existing favorite locations from AsyncStorage to Firebase
+  static async syncFavoriteLocationsToFirebase() {
+    try {
+      if (!this.isFirebaseAvailable()) {
+        console.log('Firebase not available, skipping sync');
+        return;
+      }
+
+      const localFavorites = await this.getFavoriteLocations();
+      if (localFavorites.length === 0) {
+        console.log('No local favorites to sync');
+        return;
+      }
+
+      const userId = this.getCurrentUserId();
+      console.log('Syncing', localFavorites.length, 'favorite locations to Firebase...');
+
+      for (const location of localFavorites) {
+        try {
+          await setDoc(doc(db!, 'favoriteLocations', `${userId}_${location.id}`), {
+            userId: userId,
+            ...location,
+            syncedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+          console.log('Synced favorite location:', location.name);
+        } catch (error) {
+          console.warn('Failed to sync location:', location.name, error);
+        }
+      }
+      
+      console.log('✅ Favorite locations sync completed');
+    } catch (error) {
+      console.error('Error syncing favorite locations to Firebase:', error);
     }
   }
 
