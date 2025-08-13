@@ -240,8 +240,8 @@ export class WeatherService {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       
-      // Calculate normal temperature based on season
-      const normalTemp = 25 + Math.sin((date.getMonth() + 1) * Math.PI / 6) * 8;
+      // Calculate normal temperature based on season for Indonesia (tropical climate)
+      const normalTemp = 28 + Math.sin((date.getMonth() + 1) * Math.PI / 6) * 3; // 25-31°C range
       
       // For recent days, use temperature closer to current temperature for realistic anomalies
       let actualTemp: number;
@@ -266,13 +266,14 @@ export class WeatherService {
       let type: TemperatureAnomaly['type'] = 'normal';
       let severity: TemperatureAnomaly['severity'] = 'low';
       
-      // More realistic thresholds for Indonesian climate
-      if (anomaly > 3) {
+      // Adjusted thresholds for Indonesian tropical climate
+      // Normal: 25-31°C, Heat Wave: >35°C, Cold Wave: <22°C
+      if (anomaly > 6) {
         type = 'heat_wave';
-        severity = anomaly > 8 ? 'extreme' : anomaly > 5 ? 'high' : 'medium';
-      } else if (anomaly < -3) {
+        severity = anomaly > 12 ? 'extreme' : anomaly > 9 ? 'high' : 'medium';
+      } else if (anomaly < -6) {
         type = 'cold_wave';
-        severity = anomaly < -8 ? 'extreme' : anomaly < -5 ? 'high' : 'medium';
+        severity = anomaly < -12 ? 'extreme' : anomaly < -9 ? 'high' : 'medium';
       }
       
       anomalies.push({
