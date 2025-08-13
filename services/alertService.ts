@@ -212,8 +212,8 @@ export class AlertService {
 
   private static createHeatWaveAlert(anomaly: TemperatureAnomaly, location: string): Alert {
     const severityMessages = {
-      medium: 'Ambil tindakan pencegahan untuk tetap sejuk.',
-      high: 'Kondisi gelombang panas terdeteksi. Tetap terhidrasi dan hindari paparan sinar matahari berkepanjangan.',
+      medium: 'Suhu cukup tinggi untuk Indonesia. Tetap waspada dan jaga hidrasi.',
+      high: 'Gelombang panas terdeteksi! Tetap terhidrasi dan hindari paparan sinar matahari berkepanjangan.',
       extreme: 'Gelombang panas ekstrem! Tetap di dalam ruangan dan cari AC.'
     };
     
