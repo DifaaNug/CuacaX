@@ -6,7 +6,7 @@ export default {
     slug: "CuacaX",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/images/logo-cuacaX.png",
     scheme: "cuacax",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -23,8 +23,8 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#0066CC"
+        foregroundImage: "./assets/images/logo-cuacaX.png",
+        backgroundColor: "#1a202c"
       },
       edgeToEdgeEnabled: true,
       permissions: [
@@ -52,10 +52,10 @@ export default {
       [
         "expo-splash-screen",
         {
-          image: "./assets/images/splash-icon.png",
-          imageWidth: 200,
+          image: "./assets/images/logo-cuacaX.png",
+          imageWidth: 250,
           resizeMode: "contain",
-          backgroundColor: "#0066CC"
+          backgroundColor: "#1a202c"
         }
       ],
       [
