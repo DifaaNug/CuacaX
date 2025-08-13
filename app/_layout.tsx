@@ -2,19 +2,21 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthService } from '@/services/authService';
 import { DatabaseService } from '@/services/databaseService';
 import { LocationProvider } from '@/contexts/LocationContext';
+import { CustomSplashScreen } from '@/components/CustomSplashScreen';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     // Initialize Firebase Authentication with error handling
@@ -42,14 +44,17 @@ export default function RootLayout() {
     }
   }, [loaded, colorScheme]);
 
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
   if (!loaded) {
     // Async font loading only occurs in development.
     return null;
   }
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+  if (showSplash) {
+    return <CustomSplashScreen onFinish={handleSplashFinish} />;
   }
 
   return (
