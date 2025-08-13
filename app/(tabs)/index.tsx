@@ -303,6 +303,11 @@ export default function HomeScreen() {
       // Clear any old English alerts first
       await AlertService.clearEnglishAlerts();
       
+      // Sync existing favorite locations to Firebase
+      setTimeout(async () => {
+        await DatabaseService.syncFavoriteLocationsToFirebase();
+      }, 2000); // Wait 2 seconds for Firebase to be ready
+      
       // Wait for location permission first
       await requestLocationPermission();
       await loadWeatherData();
