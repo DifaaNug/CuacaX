@@ -17,7 +17,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    // Initialize Firebase Authentication
+    // Initialize Firebase Authentication with error handling
     const initializeApp = async () => {
       try {
         // Wait for authentication to complete before proceeding
@@ -33,6 +33,7 @@ export default function RootLayout() {
         });
       } catch (error) {
         console.error('Error initializing app:', error);
+        // App can continue even if Firebase fails
       }
     };
 
@@ -40,6 +41,11 @@ export default function RootLayout() {
       initializeApp();
     }
   }, [loaded, colorScheme]);
+
+  if (!loaded) {
+    // Async font loading only occurs in development.
+    return null;
+  }
 
   if (!loaded) {
     // Async font loading only occurs in development.

@@ -10,7 +10,7 @@ export default {
     scheme: "cuacax",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
-    projectId: "fbf8f2ac-d234-4567-8901-cuacaxproject",
+    projectId: "9e4a2212-858f-4057-a10b-0a330936520c",
     ios: {
       supportsTablet: true,
       infoPlist: {
@@ -49,7 +49,6 @@ export default {
     },
     plugins: [
       "expo-router",
-      "expo-web-browser",
       [
         "expo-splash-screen",
         {
@@ -64,14 +63,6 @@ export default {
         {
           locationAlwaysAndWhenInUsePermission: "Aplikasi ini memerlukan akses lokasi untuk memberikan informasi cuaca dan peringatan kesehatan yang akurat."
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/images/notification-icon.png",
-          color: "#0066CC",
-          sounds: ["./assets/sounds/notification.wav"]
-        }
       ]
     ],
     experiments: {
@@ -79,7 +70,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: "your-project-id"
+        projectId: "9e4a2212-858f-4057-a10b-0a330936520c"
       }
     }
   }

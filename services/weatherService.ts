@@ -5,21 +5,27 @@ const GEO_URL = 'https://api.openweathermap.org/geo/1.0';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
 
 // TODO: Replace with your OpenWeatherMap API key
-const API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY || 'your-openweathermap-api-key';
+const API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY || '7fa604aa0abb83b5f0eab68a7fad889b';
 
 export class WeatherService {
   
   static async getCurrentWeather(lat: number, lon: number): Promise<WeatherData> {
     try {
-      const response = await fetch(
-        `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-      );
+      const url = `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+      console.log('Fetching weather from:', url.replace(API_KEY, '[API_KEY]'));
+      
+      const response = await fetch(url);
+      
+      console.log('Weather API response status:', response.status);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch weather data');
+        const errorText = await response.text();
+        console.error('Weather API error response:', errorText);
+        throw new Error(`Failed to fetch weather data: ${response.status} - ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('Weather data received successfully:', data.name, data.main.temp);
       
       return {
         location: data.name,

@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, signOut, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 export class AuthService {
@@ -7,25 +7,41 @@ export class AuthService {
   // Initialize authentication listener
   static initializeAuth(): Promise<User | null> {
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          this.currentUser = user;
-          console.log('User signed in:', user.uid);
-          resolve(user);
-        } else {
-          // Auto sign in anonymously if no user
-          try {
-            const userCredential = await signInAnonymously(auth);
-            this.currentUser = userCredential.user;
-            console.log('Anonymous user created:', userCredential.user.uid);
-            resolve(userCredential.user);
-          } catch (error) {
-            console.error('Error signing in anonymously:', error);
-            resolve(null);
-          }
+      try {
+        if (!auth) {
+          console.log('Firebase auth not available, resolving with null');
+          resolve(null);
+          return;
         }
-        unsubscribe();
-      });
+
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            this.currentUser = user;
+            console.log('User signed in:', user.uid);
+            resolve(user);
+          } else {
+            // Auto sign in anonymously if no user
+            try {
+              if (!auth) {
+                console.log('Firebase auth not available for anonymous sign in');
+                resolve(null);
+                return;
+              }
+              const userCredential = await signInAnonymously(auth);
+              this.currentUser = userCredential.user;
+              console.log('Anonymous user created:', userCredential.user.uid);
+              resolve(userCredential.user);
+            } catch (error) {
+              console.error('Error signing in anonymously:', error);
+              resolve(null);
+            }
+          }
+          unsubscribe();
+        });
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        resolve(null);
+      }
     });
   }
 
@@ -42,7 +58,9 @@ export class AuthService {
   // Sign out (optional)
   static async signOut(): Promise<void> {
     try {
-      await auth.signOut();
+      if (auth) {
+        await signOut(auth);
+      }
       this.currentUser = null;
     } catch (error) {
       console.error('Error signing out:', error);

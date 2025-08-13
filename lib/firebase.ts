@@ -1,68 +1,57 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getMessaging, getToken, isSupported } from 'firebase/messaging';
-import { getStorage } from 'firebase/storage';
+// Firebase configuration using Web SDK (more compatible with Expo)
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Firebase configuration from environment variables
+// Firebase configuration from google-services.json
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyBTqXuBDljLGD3rAlxDm86FmpX3qU4jpOQ",
+  authDomain: "cuacax-eedc4.firebaseapp.com",
+  projectId: "cuacax-eedc4",
+  storageBucket: "cuacax-eedc4.firebasestorage.app",
+  messagingSenderId: "484327126760",
+  appId: "1:484327126760:android:9ca03ef69e882be1883b5d"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only once
+let app;
+let auth: Auth | null;
+let db: Firestore | null;
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-
-// Initialize Firebase Cloud Messaging (only in web environment)
-let messaging: any = null;
-if (typeof window !== 'undefined') {
-  try {
-    isSupported().then((supported) => {
-      if (supported) {
-        messaging = getMessaging(app);
-      }
-    });
-  } catch (error) {
-    console.log('Firebase messaging not available:', error);
+try {
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
   }
+  
+  auth = getAuth(app);
+  db = getFirestore(app);
+  
+  console.log('Firebase initialized successfully with Android config');
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  // Create mock services as fallback
+  auth = null;
+  db = null;
 }
 
-export { messaging };
+// Export Firebase services
+export { auth, db };
 
-// Development setup (optional)
-if (__DEV__ && typeof window !== 'undefined') {
-  console.log('Firebase initialized in development mode');
-}
+// Re-export types for convenience
+export type { User } from 'firebase/auth';
 
-// Helper functions for FCM
+// For compatibility
+export const storage = null;
+
+// Helper function for FCM (if needed later)
 export const requestFCMPermission = async (): Promise<string | null> => {
   try {
-    if (!messaging) return null;
-    
-    const vapidKey = process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY;
-    if (!vapidKey) {
-      console.warn('VAPID key not found in environment variables. Generate one in Firebase Console.');
-      return null;
-    }
-    
-    const token = await getToken(messaging, {
-      vapidKey: vapidKey,
-    });
-    
-    return token;
+    console.log('FCM permission requested (Web SDK)');
+    return null;
   } catch (error) {
-    console.error('Error getting FCM token:', error);
+    console.error('Error requesting FCM permission:', error);
     return null;
   }
 };
-
-export default app;

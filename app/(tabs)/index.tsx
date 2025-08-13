@@ -69,7 +69,14 @@ export default function HomeScreen() {
 
   const generateRealForecast = useCallback(async (lat: number, lon: number) => {
     try {
+      console.log('🌅 Generating forecast for:', lat, lon);
       const forecastData = await WeatherService.getForecast(lat, lon);
+      console.log('✅ Forecast data received:', forecastData?.length || 0, 'items');
+      
+      if (!forecastData || !Array.isArray(forecastData) || forecastData.length === 0) {
+        console.warn('⚠️ No forecast data available, returning empty array');
+        return [];
+      }
       
       const getDayName = (dayOffset: number) => {
         const today = new Date();
@@ -80,15 +87,28 @@ export default function HomeScreen() {
         return dayNames[targetDate.getDay()];
       };
       
-      return forecastData.slice(0, 5).map((forecast, index) => ({
-        day: getDayName(index),
-        icon: getWeatherIcon(forecast.icon),
-        high: forecast.temperature.max,
-        low: forecast.temperature.min,
-        description: translateWeatherDescription(forecast.description)
-      }));
+      return forecastData.slice(0, 5).map((forecast, index) => {
+        if (!forecast || !forecast.temperature) {
+          console.warn('⚠️ Invalid forecast item at index', index, forecast);
+          return {
+            day: getDayName(index),
+            icon: '🌤️',
+            high: 30,
+            low: 24,
+            description: 'Cuaca Tidak Tersedia'
+          };
+        }
+        
+        return {
+          day: getDayName(index),
+          icon: getWeatherIcon(forecast.icon || '01d'),
+          high: forecast.temperature.max || 30,
+          low: forecast.temperature.min || 24,
+          description: translateWeatherDescription(forecast.description || 'clear sky')
+        };
+      });
     } catch (error) {
-      console.error('Error generating real forecast:', error);
+      console.error('❌ Error generating real forecast:', error);
       // Fallback to mock data if API fails
       return [];
     }
@@ -135,34 +155,63 @@ export default function HomeScreen() {
 
   const loadWeatherData = useCallback(async () => {
     try {
+      console.log('🌤️ Starting to load weather data...');
       setError(null); // Clear any previous errors
       const coords = await getCurrentLocation();
-      if (!coords) return;
+      if (!coords) {
+        console.warn('⚠️ No coordinates available');
+        return;
+      }
+
+      console.log('📍 Got coordinates:', coords);
 
       // Load weather data
+      console.log('☀️ Fetching current weather...');
       const weather = await WeatherService.getCurrentWeather(coords.lat, coords.lon);
+      console.log('✅ Weather data loaded:', weather.location, weather.temperature + '°C');
+      
+      console.log('🌅 Fetching UV index...');
       const uvIndex = await WeatherService.getUVIndex(coords.lat, coords.lon);
       weather.uvIndex = uvIndex;
       setWeatherData(weather);
+      console.log('✅ UV index loaded:', uvIndex);
 
       // Generate real forecast data
+      console.log('📅 Generating forecast...');
       const forecast = await generateRealForecast(coords.lat, coords.lon);
       setForecastData(forecast);
+      console.log('✅ Forecast loaded:', forecast.length, 'days');
 
       // Update timestamp
       setLastUpdate(new Date());
 
       // Load air quality data
-      const airQualityData = await WeatherService.getAirQuality(coords.lat, coords.lon);
-      setAirQuality(airQualityData);
+      console.log('🌬️ Fetching air quality...');
+      let airQualityData: AirQualityData | null = null;
+      try {
+        airQualityData = await WeatherService.getAirQuality(coords.lat, coords.lon);
+        setAirQuality(airQualityData);
+        console.log('✅ Air quality loaded:', airQualityData.quality);
+      } catch (airError) {
+        console.warn('⚠️ Air quality failed, using fallback:', airError);
+        setAirQuality(null);
+      }
 
       // Load temperature anomalies with current temperature for realistic simulation
-      const anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7, weather.temperature);
-      setTemperatureAnomalies(anomalies);
+      console.log('📊 Fetching temperature anomalies...');
+      let anomalies: TemperatureAnomaly[] = [];
+      try {
+        anomalies = await WeatherService.getHistoricalData(coords.lat, coords.lon, 7, weather.temperature);
+        setTemperatureAnomalies(anomalies);
+        console.log('✅ Temperature anomalies loaded:', anomalies.length, 'days');
+      } catch (anomalyError) {
+        console.warn('⚠️ Temperature anomalies failed, using fallback:', anomalyError);
+        setTemperatureAnomalies([]);
+      }
 
       // Check for alerts
       const temperatureAlerts = await AlertService.checkTemperatureAnomalies(anomalies, weather.location);
-      const airQualityAlert = await AlertService.checkAirQuality(airQualityData, weather.location);
+      const airQualityAlert = airQualityData ? await AlertService.checkAirQuality(airQualityData, weather.location) : null;
       const uvAlert = await AlertService.checkUVIndex(uvIndex, weather.location);
       
       const newAlerts = [
@@ -211,17 +260,19 @@ export default function HomeScreen() {
       }
 
       // Get health tips
-      const hasHeatWave = anomalies.some(a => a.type === 'heat_wave');
-      const hasColdWave = anomalies.some(a => a.type === 'cold_wave');
+      const hasHeatWave = anomalies.some((a: TemperatureAnomaly) => a.type === 'heat_wave');
+      const hasColdWave = anomalies.some((a: TemperatureAnomaly) => a.type === 'cold_wave');
       
-      const tips = HealthTipService.getRelevantTips(weather, airQualityData, hasHeatWave, hasColdWave);
+      const tips = HealthTipService.getRelevantTips(weather, airQualityData || undefined, hasHeatWave, hasColdWave);
       setHealthTips(tips);
 
       // Save weather data to database for history
-      await DatabaseService.saveWeatherHistory(weather);
+      await DatabaseService.logWeatherData(weather);
 
-      // Check and send weather alerts
-      await NotificationService.checkAndSendWeatherAlerts(weather, airQualityData, anomalies);
+      // Check and send weather alerts (only if airQualityData is available)
+      if (airQualityData) {
+        await NotificationService.checkAndSendWeatherAlerts(weather, airQualityData, anomalies);
+      }
 
     } catch (error) {
       console.error('Error loading weather data:', error);
