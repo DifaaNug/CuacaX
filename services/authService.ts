@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInAnonymously, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 export class AuthService {
@@ -53,19 +53,6 @@ export class AuthService {
   // Get current user
   static getCurrentUser(): User | null {
     return this.currentUser;
-  }
-
-  // Sign out (optional)
-  static async signOut(): Promise<void> {
-    try {
-      if (auth) {
-        await signOut(auth);
-      }
-      this.currentUser = null;
-    } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
-    }
   }
 
   // Check if user is authenticated
