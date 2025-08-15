@@ -170,6 +170,30 @@ export class HealthTipService {
       category: 'general',
       conditions: ['temperature > 25'],
       icon: '🥗'
+    },
+    {
+      id: 'general_5',
+      title: 'Tetap Aktif dengan Aman',
+      description: 'Lakukan olahraga ringan dan aktivitas fisik secara teratur, sesuaikan dengan kondisi cuaca saat ini.',
+      category: 'general',
+      conditions: ['always'],
+      icon: '🏃‍♀️'
+    },
+    {
+      id: 'general_6',
+      title: 'Jaga Kelembaban Ruangan',
+      description: 'Pertahankan kelembaban ruangan yang nyaman (40-60%) untuk kesehatan pernapasan optimal.',
+      category: 'general',
+      conditions: ['always'],
+      icon: '💨'
+    },
+    {
+      id: 'general_7',
+      title: 'Istirahat yang Cukup',
+      description: 'Pastikan tidur yang cukup dan berkualitas. Cuaca ekstrem dapat mempengaruhi pola tidur Anda.',
+      category: 'general',
+      conditions: ['always'],
+      icon: '😴'
     }
   ];
 
