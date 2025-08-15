@@ -63,7 +63,7 @@ export interface HealthTip {
 
 export interface Alert {
   id: string;
-  type: 'heat_wave' | 'cold_wave' | 'poor_air_quality' | 'high_uv' | 'severe_weather';
+  type: 'heat_wave' | 'cold_wave' | 'poor_air_quality' | 'high_uv' | 'severe_weather' | 'normal' | 'moderate';
   title: string;
   message: string;
   severity: 'low' | 'medium' | 'high' | 'extreme';
