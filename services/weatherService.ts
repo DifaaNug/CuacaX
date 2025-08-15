@@ -4,7 +4,7 @@ const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const GEO_URL = 'https://api.openweathermap.org/geo/1.0';
 const AIR_POLLUTION_URL = 'https://api.openweathermap.org/data/2.5/air_pollution';
 
-// TODO: Replace with your OpenWeatherMap API key
+
 const API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY || '7fa604aa0abb83b5f0eab68a7fad889b';
 
 export class WeatherService {
@@ -100,9 +100,7 @@ export class WeatherService {
 
   static async getUVIndex(lat: number, lon: number): Promise<number> {
     try {
-      // OpenWeather UV Index API is deprecated
-      // Using OneCall API 3.0 for UV data (requires subscription)
-      // For now, we'll use current weather data and estimate UV based on conditions
+  
       const response = await fetch(
         `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
       );
