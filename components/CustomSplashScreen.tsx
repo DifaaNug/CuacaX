@@ -11,11 +11,10 @@ export const CustomSplashScreen: React.FC<CustomSplashScreenProps> = ({ onFinish
   const logoScale = useRef(new Animated.Value(0.3)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const logoRotate = useRef(new Animated.Value(0)).current;
   const gradientOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Sequence animasi yang smooth
+    // Sequence animasi yang smooth tanpa rotasi
     const sequence = Animated.sequence([
       // 1. Fade in gradient background
       Animated.timing(gradientOpacity, {
@@ -39,24 +38,17 @@ export const CustomSplashScreen: React.FC<CustomSplashScreenProps> = ({ onFinish
         }),
       ]),
       
-      // 3. Logo subtle rotate animation
-      Animated.timing(logoRotate, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      
-      // 4. Text fade in
+      // 3. Text fade in
       Animated.timing(textOpacity, {
         toValue: 1,
         duration: 600,
         useNativeDriver: true,
       }),
       
-      // 5. Hold for a moment
+      // 4. Hold for a moment
       Animated.delay(800),
       
-      // 6. Fade out everything
+      // 5. Fade out everything
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 0,
@@ -83,18 +75,13 @@ export const CustomSplashScreen: React.FC<CustomSplashScreenProps> = ({ onFinish
     return () => {
       sequence.stop();
     };
-  }, [gradientOpacity, logoOpacity, logoRotate, logoScale, onFinish, textOpacity]);
-
-  const logoRotateInterpolate = logoRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  }, [gradientOpacity, logoOpacity, logoScale, onFinish, textOpacity]);
 
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.gradientContainer, { opacity: gradientOpacity }]}>
         <LinearGradient
-          colors={['#1a202c', '#2d3748', '#4a5568']}
+          colors={['#ffffff', '#f7fafc', '#edf2f7']}
           style={styles.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -108,7 +95,6 @@ export const CustomSplashScreen: React.FC<CustomSplashScreenProps> = ({ onFinish
             opacity: logoOpacity,
             transform: [
               { scale: logoScale },
-              { rotate: logoRotateInterpolate },
             ],
           },
         ]}
@@ -182,7 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a202c',
+    backgroundColor: '#ffffff',
   },
   gradientContainer: {
     position: 'absolute',
@@ -207,15 +193,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#1a202c',
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#a0aec0',
+    color: '#4a5568',
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -231,7 +217,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#60a5fa',
+    backgroundColor: '#3182ce',
     marginHorizontal: 4,
   },
 });
