@@ -52,8 +52,13 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
     }
   };
 
-  const emergencyTips = tips.filter(tip => tip.category === 'general');
-  const regularTips = tips.filter(tip => tip.category !== 'general');
+  // Filter tips berdasarkan prioritas emergency
+  const emergencyTips = tips.filter(tip => 
+    tip.title.includes('EMERGENCY') || tip.title.includes('DARURAT') || tip.title.includes('EXTREME')
+  );
+  const regularTips = tips.filter(tip => 
+    !tip.title.includes('EMERGENCY') && !tip.title.includes('DARURAT') && !tip.title.includes('EXTREME')
+  );
 
   return (
     <Animated.View 
@@ -102,26 +107,33 @@ export function HealthTipsCard({ tips }: HealthTipsCardProps) {
         style={styles.tipsScroll}
         contentContainerStyle={styles.tipsContainer}
       >
-        {regularTips.map((tip) => (
-          <View key={tip.id} style={[styles.tipCard, { backgroundColor: '#FFFFFF' }]}>
-            <View style={styles.tipHeader}>
-              <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(tip.category) }]}>
-                <Text style={styles.categoryText}>{getCategoryName(tip.category)}</Text>
+        {regularTips.length > 0 ? (
+          regularTips.map((tip) => (
+            <View key={tip.id} style={[styles.tipCard, { backgroundColor: '#FFFFFF' }]}>
+              <View style={styles.tipHeader}>
+                <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(tip.category) }]}>
+                  <Text style={styles.categoryText}>{getCategoryName(tip.category)}</Text>
+                </View>
               </View>
-            </View>
-            
-            <View style={styles.tipIconContainer}>
-              <View style={[styles.iconCircle, { backgroundColor: getCategoryColor(tip.category) }]}>
-                <Text style={styles.tipCardIcon}>{tip.icon}</Text>
+              
+              <View style={styles.tipIconContainer}>
+                <View style={[styles.iconCircle, { backgroundColor: getCategoryColor(tip.category) }]}>
+                  <Text style={styles.tipCardIcon}>{tip.icon}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.tipInfo}>
-              <Text style={styles.tipTitle}>{tip.title}</Text>
-              <Text style={styles.tipDescription}>{tip.description}</Text>
+              <View style={styles.tipInfo}>
+                <Text style={styles.tipTitle}>{tip.title}</Text>
+                <Text style={styles.tipDescription}>{tip.description}</Text>
+              </View>
             </View>
+          ))
+        ) : (
+          <View style={styles.noTipsContainer}>
+            <Text style={styles.noTipsIcon}>💡</Text>
+            <Text style={styles.noTipsText}>Tips kesehatan akan muncul berdasarkan kondisi cuaca saat ini</Text>
           </View>
-        ))}
+        )}
       </ScrollView>
 
       <View style={styles.infoBox}>
@@ -305,6 +317,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#0369A1',
     flex: 1,
+    fontWeight: '500',
+  },
+  noTipsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    width: screenWidth * 0.8,
+  },
+  noTipsIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  noTipsText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
     fontWeight: '500',
   },
 });
