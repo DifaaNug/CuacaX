@@ -24,7 +24,7 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/logo-cuacaX.png",
-        backgroundColor: "#1a202c"
+        backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true,
       permissions: [
@@ -55,7 +55,7 @@ export default {
           image: "./assets/images/logo-cuacaX.png",
           imageWidth: 250,
           resizeMode: "contain",
-          backgroundColor: "#1a202c"
+          backgroundColor: "#ffffff"
         }
       ],
       [
