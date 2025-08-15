@@ -44,14 +44,14 @@ export class AlertService {
     // Only check TODAY's anomaly (most recent) for current conditions
     const todayAnomaly = anomalies[anomalies.length - 1]; // Last item is today
     
-    if (!todayAnomaly || todayAnomaly.type === 'normal') {
-      return alerts; // No alert needed for normal conditions
+    if (!todayAnomaly) {
+      return alerts; // No data available
     }
-
-    // Check if we already have an alert for today to prevent duplicates
+    
+    // Create alerts for ALL temperature conditions, including normal
     const today = new Date().toDateString();
     const existingAlerts = await this.getActiveAlerts();
-    
+
     if (todayAnomaly.type === 'heat_wave') {
       const existingHeatAlert = existingAlerts.find(
         alert => alert.type === 'heat_wave' && 
@@ -90,9 +90,45 @@ export class AlertService {
         // Add existing alert to display in UI
         alerts.push(existingColdAlert);
       }
-    }
-    
-    if (alerts.length > 0) {
+    } else if (todayAnomaly.type === 'normal') {
+      // Create normal temperature info alert
+      const existingNormalAlert = existingAlerts.find(
+        alert => alert.type === 'normal' && 
+        alert.location === location &&
+        new Date(alert.timestamp).toDateString() === today
+      );
+      
+      if (!existingNormalAlert) {
+        const alert = this.createNormalTemperatureAlert(todayAnomaly, location);
+        alerts.push(alert);
+        
+        // Send normal temperature notification if enabled
+        if (preferences.normal) {
+          await this.sendNotification(alert);
+        }
+      } else {
+        alerts.push(existingNormalAlert);
+      }
+    } else if (todayAnomaly.type === 'moderate') {
+      // Create moderate temperature info alert
+      const existingModerateAlert = existingAlerts.find(
+        alert => alert.type === 'moderate' && 
+        alert.location === location &&
+        new Date(alert.timestamp).toDateString() === today
+      );
+      
+      if (!existingModerateAlert) {
+        const alert = this.createModerateTemperatureAlert(todayAnomaly, location);
+        alerts.push(alert);
+        
+        // Send moderate temperature notification if enabled
+        if (preferences.moderate) {
+          await this.sendNotification(alert);
+        }
+      } else {
+        alerts.push(existingModerateAlert);
+      }
+    }    if (alerts.length > 0) {
       await this.saveAlerts(alerts);
     }
     return alerts;
@@ -289,6 +325,42 @@ export class AlertService {
       location,
       isActive: true,
       recommendations: recommendations[anomaly.severity as keyof typeof recommendations]
+    };
+  }
+
+  private static createNormalTemperatureAlert(anomaly: TemperatureAnomaly, location: string): Alert {
+    return {
+      id: `normal_temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: 'normal',
+      title: `Suhu Normal - ${location}`,
+      message: `Suhu ${anomaly.temperature}°C - kondisi cuaca normal dan nyaman untuk aktivitas sehari-hari.`,
+      severity: 'low',
+      timestamp: new Date(),
+      location,
+      isActive: true,
+      recommendations: [
+        'Kondisi cuaca normal, cocok untuk aktivitas outdoor',
+        'Tetap jaga kesehatan dan hidrasi',
+        'Gunakan pakaian yang nyaman'
+      ]
+    };
+  }
+
+  private static createModerateTemperatureAlert(anomaly: TemperatureAnomaly, location: string): Alert {
+    return {
+      id: `moderate_temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: 'moderate',
+      title: `Suhu Sedang - ${location}`,
+      message: `Suhu ${anomaly.temperature}°C - kondisi cuaca sedang, sedikit lebih hangat dari normal.`,
+      severity: 'low',
+      timestamp: new Date(),
+      location,
+      isActive: true,
+      recommendations: [
+        'Cuaca sedikit hangat, gunakan pakaian yang ringan',
+        'Minum air yang cukup',
+        'Aktivitas outdoor masih aman dilakukan'
+      ]
     };
   }
 
